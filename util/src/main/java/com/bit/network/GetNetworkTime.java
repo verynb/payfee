@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GetNetworkTime {
 
-  private static final String webUrl = "http://www.taobao.com";//百度
+  private static final String webUrl = "http://www.taobao.com";//淘宝
 
   private static final String LIMITEDTIME_URL = "http://www.i9wine.com/limitedtime.html";//时间限制
 
