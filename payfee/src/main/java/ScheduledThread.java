@@ -17,7 +17,7 @@ public class ScheduledThread {
         ThreadConfig config = new ThreadConfig(1, 100, 50);
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
         scheduledThreadPool.schedule(new SimpleCrawlJob(config,
-                        "hyyi01", "puffs258180"),
+                        "hyyi06", "puffs258180"),
                 5, TimeUnit.SECONDS);
         scheduledThreadPool.shutdown();
         while (true) {

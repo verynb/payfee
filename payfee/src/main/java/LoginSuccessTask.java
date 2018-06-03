@@ -29,6 +29,7 @@ public class LoginSuccessTask {
             Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
             return new LoginSuccessResult(200, doc,"success");
         } catch (Exception e) {
+            logger.info("登录后请求异常"+e.getMessage());
             return new LoginSuccessResult(500, null,e.getMessage());
         } finally {
             response.getHttpGet().releaseConnection();

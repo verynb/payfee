@@ -1,7 +1,7 @@
 import RanewalJob.AbstractJob;
 import com.bit.network.SessionHolder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import support.*;
@@ -10,16 +10,14 @@ import support.*;
  * <p>
  * Created by yj on 2017/6/27.
  */
-@Getter
-@Setter
+@Data
+@Slf4j
 public class SimpleCrawlJob extends AbstractJob {
 
     private ThreadConfig config;
     private String userName;
     private String password;
     private static Logger logger = LoggerFactory.getLogger(SimpleCrawlJob.class);
-    private static Logger transferSuccessLogger = LoggerFactory.getLogger("transferSuccessLogger");
-    private static Logger transferFailueLogger = LoggerFactory.getLogger("transferFailueLogger");
 
     public SimpleCrawlJob(ThreadConfig config, String userName, String password) {
         this.config = config;
@@ -47,25 +45,28 @@ public class SimpleCrawlJob extends AbstractJob {
                 userName,
                 password);
         if (!loginResult.isActive()) {
-            System.out.print("对应异常处理");
-            //todo 对应异常处理
+            logger.info("登录对应异常处理");
+            //todo 登录对应异常处理
         }
         LoginSuccessResult successResult = LoginSuccessTask.execute();
         if (!successResult.isRenewal()) {
-            System.out.print("不需要续期做对应处理");
+            logger.info("不需要续期做对应处理");
             //todo 不需要续期做对应处理
         }
         RenewalParam param = successResult.filterIdValue();
+        logger.info("续期参数" + param.toString());
         RenewalAmount amount = successResult.filterWallet();
+        logger.info("续期参数" + amount.toString());
         if (RenewalUtil.usageFee(amount)) {
             ActFee actFee = RenewalUtil.actFee(amount);
+            logger.info("续期参数" + actFee.toString());
             param.setPayOneAmount(String.valueOf(actFee.getAccash()));
             param.setPayTwoAmount(String.valueOf(actFee.getAcrewards()));
             param.setPayThreeAmount(String.valueOf(actFee.getAcsavings()));
             param.setInputAmount(String.valueOf(amount.getAmount()));
-            RenewalTask.execute(param);
+            int code = RenewalTask.execute(param);
         } else {
-            System.out.print("余额不足异常处理");
+            logger.info("余额不足异常处理");
             //todo 余额不足异常处理
         }
     }
