@@ -1,5 +1,3 @@
-package support;
-
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HttpPostResult;
@@ -7,6 +5,8 @@ import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import support.RenewalIdConstance;
+import support.RenewalParam;
 
 import java.util.Map;
 
@@ -47,6 +47,7 @@ public class RenewalTask {
             CrawlHttpConf conf = new CrawlHttpConf(getParam(param));
             response = HttpUtils
                     .doPost(CrawlMeta.getNewInstance(RenewalTask.class, URL), conf);
+
         } catch (Exception e) {
         } finally {
             response.getHttpPost().releaseConnection();

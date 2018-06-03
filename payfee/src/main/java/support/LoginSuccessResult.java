@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class LoginSuccessResult {
     private int code;
     private Document doc;
+    private String message;
 
     /**
      * 是否需要续期

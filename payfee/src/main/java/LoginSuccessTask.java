@@ -27,9 +27,9 @@ public class LoginSuccessTask {
         try {
             response = HttpUtils.doGet(CrawlMeta.getNewInstance(LoginAuthTokenTask.class, URL), new CrawlHttpConf());
             Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
-            return new LoginSuccessResult(200, doc);
+            return new LoginSuccessResult(200, doc,"success");
         } catch (Exception e) {
-            return new LoginSuccessResult(500, null);
+            return new LoginSuccessResult(500, null,e.getMessage());
         } finally {
             response.getHttpGet().releaseConnection();
             response.getHttpClient().getConnectionManager().shutdown();

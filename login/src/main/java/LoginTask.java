@@ -29,7 +29,7 @@ public class LoginTask {
         return param;
     }
 
-    public static LoginResult execute(String tokenValue, String userName, String password) {
+    private static LoginResult execute(String tokenValue, String userName, String password) {
         logger.debug("tokenValue[" + tokenValue + "]" + "userName[" + userName + "]");
         HttpPostResult response = null;
         try {
@@ -78,10 +78,4 @@ public class LoginTask {
         }
         return new LoginResult(402, LoginExceptionConstance.TRY_EXCEPETION);
     }
-
-    public static void main(String args[]) {
-        LoginResult result = LoginTask.tryTimes(1, 100, "hyyi01", "puffs258180");
-//        System.out.print(result.toString());
-    }
-
 }
