@@ -1,26 +1,24 @@
 package com.bit.network;
 
 
-import com.google.common.collect.Sets;
-import java.util.Set;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by yuanj on 2017/6/27.
  */
 @Data
 public class CrawlMeta {
+    private static Logger logger = LoggerFactory.getLogger(CrawlMeta.class);
+    private String url;
 
-  private String url;
-  private Set<String> selectorRules;
+    public static CrawlMeta getNewInstance(Class c, String url) {
+        logger.debug("taskName[" + c.getName() + "]url[" + url + "]");
+        return new CrawlMeta(url);
+    }
 
-  public CrawlMeta(String url) {
-    this.url = url;
-    this.selectorRules = Sets.newHashSet();
-  }
-
-  public CrawlMeta(String url, Set<String> selectorRules) {
-    this.url = url;
-    this.selectorRules = selectorRules;
-  }
+    private CrawlMeta(String url) {
+        this.url = url;
+    }
 }
