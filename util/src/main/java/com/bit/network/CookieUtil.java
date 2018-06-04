@@ -31,7 +31,4 @@ public class CookieUtil {
     return builder.toString();
   }
 
-  private static String buildString() {
-    return "";
-  }
 }

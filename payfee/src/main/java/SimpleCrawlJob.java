@@ -56,7 +56,7 @@ public class SimpleCrawlJob extends AbstractJob {
         RenewalParam param = successResult.filterIdValue();
         logger.info("续期参数" + param.toString());
         RenewalAmount amount = successResult.filterWallet();
-        logger.info("续期参数" + amount.toString());
+        logger.info("续期钱包" + amount.toString());
         if (RenewalUtil.usageFee(amount)) {
             ActFee actFee = RenewalUtil.actFee(amount);
             logger.info("续期参数" + actFee.toString());
