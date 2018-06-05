@@ -26,13 +26,13 @@ public class LoginAuthTokenTask {
             Element element = doc.select("input[name=authenticity_token]").first();
             if (!Objects.isNull(element)) {
                 loginAuthTokenData = new LoginAuthTokenData(200, element.val());
-                logger.info("获取登录token成功auth_token[" + loginAuthTokenData.getResult() + "]");
+                logger.info("auth_token[" + loginAuthTokenData.getResult() + "]");
             } else {
                 loginAuthTokenData = new LoginAuthTokenData(400, INCAPSULA_ERROR);
-                logger.info("获取登录token失败,返回" + doc.toString());
+                logger.info("auth_token失败,返回" + doc.toString());
             }
         } catch (Exception e) {
-            logger.info("获取登录页面请求异常" + e.getMessage());
+            logger.info("auth_token请求异常" + e.getMessage());
             return new LoginAuthTokenData(500, e.getMessage());
         } finally {
             response.getHttpGet().releaseConnection();

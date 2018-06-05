@@ -32,7 +32,6 @@ public class LoginTask {
     }
 
     private static LoginResult execute(String tokenValue, String userName, String password) {
-        logger.info("tokenValue[" + tokenValue + "]" + "userName[" + userName + "]");
         HttpPostResult response = null;
         try {
             CrawlHttpConf conf = new CrawlHttpConf(getParam(tokenValue, userName, password));

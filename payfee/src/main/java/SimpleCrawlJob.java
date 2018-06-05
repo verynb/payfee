@@ -55,30 +55,38 @@ public class SimpleCrawlJob extends AbstractJob {
         userName,
         password);
     if (!loginResult.isActive()) {
+      logger.info("用户["+userName+"]登录失败");
       filterAndUpdateFlag(index, -2);
       return;
     }
     LoginSuccessResult successResult = LoginSuccessTask.execute();
     if (!successResult.isRenewal()) {
+      logger.info("用户["+userName+"]不需要续期");
       filterAndUpdateFlag(index, 0);
+      return;
     }
     RenewalParam param = successResult.filterIdValue();
-    logger.info("续期参数" + param.toString());
+    logger.info("用户["+userName+"]续期参数" + param.toString());
     RenewalAmount amount = successResult.filterWallet();
-    logger.info("续期钱包" + amount.toString());
+    logger.info("用户["+userName+"]续期钱包{" + amount.toString()+"}");
     if (RenewalUtil.usageFee(amount)) {
       ActFee actFee = RenewalUtil.actFee(amount);
-      logger.info("续期参数" + actFee.toString());
+      logger.info("用户["+userName+"]续期参数" + actFee.toString());
       param.setPayOneAmount(String.valueOf(actFee.getAccash()));
       param.setPayTwoAmount(String.valueOf(actFee.getAcrewards()));
       param.setPayThreeAmount(String.valueOf(actFee.getAcsavings()));
       param.setInputAmount(String.valueOf(amount.getAmount()));
       int code = RenewalTask.execute(param);
-      if(code==200){
+      if (code == 200) {
+        logger.info("用户["+userName+"]续期成功");
         filterAndUpdateFlag(index, amount.getAmount());
         return;
+      } else {
+        logger.info("用户["+userName+"]续期失败");
+        filterAndUpdateFlag(index, 2);
       }
     } else {
+      logger.info("用户["+userName+"]续期余额不足");
       filterAndUpdateFlag(index, 1);
       return;
     }

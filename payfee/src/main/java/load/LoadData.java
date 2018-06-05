@@ -81,4 +81,10 @@ public class LoadData {
       e.printStackTrace();
     }
   }
+
+  public static int countResult(final List<TransferUserInfo> userInfos, int flag) {
+    return (int) userInfos.stream()
+        .filter(u -> u.getFlag() == flag)
+        .count();
+  }
 }
