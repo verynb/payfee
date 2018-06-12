@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import support.LoginSuccessResult;
 import support.RenewalAmount;
 import support.RenewalParam;
-import support.RenewalWallet;
 
-import java.util.List;
+import login.task.LoginAuthTokenTask;
+import login.task.LoginTask;
 
 /**
  * Created by yuanj on 2017/11/27.

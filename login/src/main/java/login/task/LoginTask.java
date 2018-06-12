@@ -1,3 +1,5 @@
+package login.task;
+
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HttpPostResult;

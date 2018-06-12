@@ -11,6 +11,7 @@
     <module>payfee</module>
     <module>util</module>
     <module>login</module>
+    <module>transfer</module>
   </modules>
 
   <properties>
@@ -112,7 +113,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.16.16</version>
+      <version>${lombok.version}</version>
     </dependency>
 
   </dependencies>
@@ -122,6 +123,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>

@@ -1,5 +1,6 @@
 import RanewalJob.AbstractJob;
 import com.bit.network.SessionHolder;
+import config.ThreadConfig;
 import java.util.Optional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import support.RenewalAmount;
 import support.RenewalParam;
 import support.RenewalUtil;
 import support.TransferUserInfo;
+import login.task.LoginTask;
 
 /**
  * <p>

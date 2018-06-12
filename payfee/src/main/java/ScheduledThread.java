@@ -1,3 +1,4 @@
+import config.ThreadConfig;
 import identity.IdentityCheck;
 import java.util.List;
 import java.util.Scanner;
