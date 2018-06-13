@@ -1,6 +1,9 @@
 package support;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,21 +11,21 @@ import org.apache.commons.lang3.StringUtils;
  * Created by yuanj on 2017/12/1.
  */
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransferUserInfo {
 
-  private int row;
   private String userName;
   private String password;
-  private Double flag;
+  private String puserName;
+  private String ppassword;
+  private String pmail;
+  private String pmailPassword;
+  private double transferAmount;
+  private String flag;
+  private int index;
 
-  public TransferUserInfo(int row, String userName, String password, Double flag) {
-    this.row = row;
-    this.userName = userName;
-    this.password = password;
-    this.flag = flag;
-  }
 
   public Boolean filterUserInfo() {
     Boolean status = true;
@@ -37,7 +40,7 @@ public class TransferUserInfo {
 
   @Override
   public String toString() {
-    return "TransferUserInfo{" +
+    return "RenewalUserInfo{" +
         "续期帐号='" + userName + '\'' + '}';
   }
 }

@@ -3,7 +3,7 @@ package RanewalJob;
 /**
  * Created by yj on 2017/6/27.
  */
-public interface IJob extends Runnable {
+public interface IJob extends Runnable{
 
     /**
      * 在job执行之前回调的方法

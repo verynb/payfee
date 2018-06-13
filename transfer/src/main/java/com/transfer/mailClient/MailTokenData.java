@@ -1,10 +1,5 @@
 package com.transfer.mailClient;
 
-import java.util.Properties;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
-
 /**
  * Created by Administrator on 2017/11/30.
  */

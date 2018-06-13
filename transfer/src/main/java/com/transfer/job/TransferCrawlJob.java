@@ -20,7 +20,6 @@ import com.transfer.task.TransferTask;
 import com.transfer.task.TransferUtil;
 import config.ThreadConfig;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import login.task.LoginTask;
@@ -37,14 +36,14 @@ import support.LoginResult;
  */
 @Getter
 @Setter
-public class SimpleCrawlJob extends AbstractJob {
+public class TransferCrawlJob extends AbstractJob {
 
-  private static Logger logger = LoggerFactory.getLogger(SimpleCrawlJob.class);
+  private static Logger logger = LoggerFactory.getLogger(TransferCrawlJob.class);
   private TransferUserInfo userInfo;
   //发邮件与收邮件时间间隔，默认10s
   private ThreadConfig config;
 
-  public SimpleCrawlJob(TransferUserInfo userInfo,
+  public TransferCrawlJob(TransferUserInfo userInfo,
       ThreadConfig config) {
     this.userInfo = userInfo;
     this.config = config;
@@ -100,11 +99,11 @@ public class SimpleCrawlJob extends AbstractJob {
           .collect(Collectors.toList());
       if (CollectionUtils.isEmpty(filterList)) {
         logger.info("转账金额没有大于0的数据");
-        return;
+        throw new RuntimeException("转账金额没有大于0的数据");
       }
       if (!TransferUtil.enough(filterList, transferAmount)) {
         logger.info("转账总额小于[" + transferAmount + "]");
-        return;
+        throw new RuntimeException("转账总额小于[" + transferAmount + "]");
       }
       TransferWallet wallet = filterList.get(0);
       Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
@@ -211,5 +210,6 @@ public class SimpleCrawlJob extends AbstractJob {
 
   @Override
   public void afterRun() {
+
   }
 }

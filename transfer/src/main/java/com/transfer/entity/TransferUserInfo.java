@@ -13,18 +13,16 @@ public class TransferUserInfo {
   private String email;
   private String mailPassword;
   private String transferTo;
-  private Integer num;
   private Double transferAmount;
 
   public TransferUserInfo(int row, String userName, String password, String email, String mailPassword,
-      String transferTo, Integer num, Double transferAmount) {
+      String transferTo,  Double transferAmount) {
     this.row = row;
     this.userName = userName;
     this.password = password;
     this.email = email;
     this.mailPassword = mailPassword;
     this.transferTo = transferTo;
-    this.num = num;
     this.transferAmount = transferAmount;
   }
 
@@ -87,13 +85,6 @@ public class TransferUserInfo {
     this.transferTo = transferTo;
   }
 
-  public Integer getNum() {
-    return num;
-  }
-
-  public void setNum(Integer num) {
-    this.num = num;
-  }
 
   public Boolean filterUserInfo() {
     Boolean status = true;

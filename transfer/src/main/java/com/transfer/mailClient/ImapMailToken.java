@@ -1,7 +1,7 @@
 package com.transfer.mailClient;
 
 import com.google.common.collect.Lists;
-import com.util.TimeCheck;
+import identity.TimeCheck;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;

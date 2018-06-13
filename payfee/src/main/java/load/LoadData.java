@@ -29,19 +29,27 @@ public class LoadData {
     CsvReader csvReader = new CsvReader();
     csvReader.setContainsHeader(true);
     CsvContainer csv = null;
-    List<TransferUserInfo> userInfos = Lists.newArrayList();
+    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo("hyyi08", "puffs258180",
+        "lhha003", "hh8389lhhl", "lianghuihua01@bookbitbtc.com", "SHENzen007v", 200, "0", 1));
     try {
       csv = csvReader.read(Paths.get(filePath), StandardCharsets.UTF_8);
       if (csv == null) {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
+        double account = row.getField("转帐金额") == null ? 200 : Double.valueOf(row.getField("转帐金额"));
         i++;
         TransferUserInfo userInfo = new TransferUserInfo(
-            i,
-            row.getField("tuser"),
-            row.getField("tpassword"),
-            row.getField("flag") == null ? null : Double.valueOf(row.getField("flag").toString()));
+            row.getField("用户id"),
+            row.getField("用户密码"),
+            row.getField("上层帐号"),
+            row.getField("上层帐号密码"),
+            row.getField("上层帐号邮件"),
+            row.getField("上层帐号邮件密码"),
+            account,
+            row.getField("flag"),
+            i
+        );
         if (userInfo.filterUserInfo()) {
           userInfos.add(userInfo);
         }
@@ -68,13 +76,13 @@ public class LoadData {
       String header = "tuser,tpassword,flag\r\n";
       writer.write(header);
       for (int i = 0; i < userInfos.size(); i++) {
-        TransferUserInfo info = userInfos.get(i);
+        /*TransferUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();
         str.append(info.getUserName().toString() + ","
             + info.getPassword().toString() + ","
             + info.getFlag().toString() + "\r\n");
         writer.write(str.toString());
-        writer.flush();
+        writer.flush();*/
       }
       writer.close();
     } catch (IOException e) {
@@ -82,9 +90,9 @@ public class LoadData {
     }
   }
 
-  public static int countResult(final List<TransferUserInfo> userInfos, int flag) {
+  public static int countResult(final List<TransferUserInfo> userInfos, String flag) {
     return (int) userInfos.stream()
-        .filter(u -> u.getFlag() == flag)
+        .filter(u -> u.getFlag().equals(flag))
         .count();
   }
 }

@@ -7,7 +7,6 @@ import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
 import com.transfer.entity.TransferParam;
 import com.transfer.entity.TransferResult;
-import com.quick.hui.crawler.core.utils.GsonUtil;
 import java.util.Map;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
