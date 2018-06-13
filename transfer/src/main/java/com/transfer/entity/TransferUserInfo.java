@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Created by yuanj on 2017/12/1.
  */
-
 public class TransferUserInfo {
 
   private int row;
@@ -15,9 +14,10 @@ public class TransferUserInfo {
   private String mailPassword;
   private String transferTo;
   private Integer num;
+  private Double transferAmount;
 
   public TransferUserInfo(int row, String userName, String password, String email, String mailPassword,
-      String transferTo, Integer num) {
+      String transferTo, Integer num, Double transferAmount) {
     this.row = row;
     this.userName = userName;
     this.password = password;
@@ -25,9 +25,18 @@ public class TransferUserInfo {
     this.mailPassword = mailPassword;
     this.transferTo = transferTo;
     this.num = num;
+    this.transferAmount = transferAmount;
   }
 
   public TransferUserInfo() {
+  }
+
+  public Double getTransferAmount() {
+    return transferAmount;
+  }
+
+  public void setTransferAmount(Double transferAmount) {
+    this.transferAmount = transferAmount;
   }
 
   public int getRow() {

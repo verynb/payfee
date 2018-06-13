@@ -17,6 +17,7 @@ import com.transfer.task.GetReceiverTask;
 import com.transfer.task.SendMailTask;
 import com.transfer.task.TransferPageTask;
 import com.transfer.task.TransferTask;
+import com.transfer.task.TransferUtil;
 import config.ThreadConfig;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,6 @@ public class SimpleCrawlJob extends AbstractJob {
   private TransferUserInfo userInfo;
   //发邮件与收邮件时间间隔，默认10s
   private ThreadConfig config;
-  private Map<String, String> cookies;
 
   public SimpleCrawlJob(TransferUserInfo userInfo,
       ThreadConfig config) {
@@ -82,14 +82,14 @@ public class SimpleCrawlJob extends AbstractJob {
     //登录成功
     Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
     transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
-        this.userInfo.getTransferTo());
+        this.userInfo.getTransferTo(),this.userInfo.getTransferAmount());
 
   }
 
   /**
    * 执行转账功能
    */
-  private void transfer(String email, String mailPassword, String transferTo)
+  private void transfer(String email, String mailPassword, String transferTo, Double transferAmount)
       throws InterruptedException {
     logger.info("开始抓取抓取转账页面数据");
     TransferPageData getTransferPage = TransferPageTask.tryTimes(config);
@@ -100,6 +100,10 @@ public class SimpleCrawlJob extends AbstractJob {
           .collect(Collectors.toList());
       if (CollectionUtils.isEmpty(filterList)) {
         logger.info("转账金额没有大于0的数据");
+        return;
+      }
+      if (!TransferUtil.enough(filterList, transferAmount)) {
+        logger.info("转账总额小于[" + transferAmount + "]");
         return;
       }
       TransferWallet wallet = filterList.get(0);
@@ -127,8 +131,8 @@ public class SimpleCrawlJob extends AbstractJob {
           } else {
             logger
                 .info("邮件解析成功");
-
-            transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData);
+            transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData,
+                transferAmount);
           }
         } else {
           throw new RuntimeException("获取邮件信息失败");
@@ -167,11 +171,11 @@ public class SimpleCrawlJob extends AbstractJob {
       TransferWallet wallet,
       String transferTo,
       UserInfo receiverInfo,
-      List<MailTokenData> tokenData) throws InterruptedException {
+      List<MailTokenData> tokenData, Double transferAmount) throws InterruptedException {
     TransferParam param = new TransferParam(getTransferPage.getAuthToken(),
         transferTo,
         wallet.getWalletId(),
-        wallet.getAmount(),
+        wallet.getAmount() - transferAmount >= 0 ? transferAmount : wallet.getAmount(),
         tokenData.get(0).getToken(),
         getTransferPage.getTransferUserId(),
         receiverInfo.getUser_id()
@@ -189,7 +193,7 @@ public class SimpleCrawlJob extends AbstractJob {
       if (cancelStr.contains("success")) {
         logger.info("取消已有token成功");
         Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        transfer(email, mailPassword, transferTo);
+        transfer(email, mailPassword, transferTo, transferAmount);
       } else {
         logger.info("取消已有token失败=" + cancelStr);
       }
@@ -198,7 +202,8 @@ public class SimpleCrawlJob extends AbstractJob {
       logger.info("转账成功，休眠500毫秒执行下一轮转账");
       Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
       logger.info("下一轮转账开始");
-      transfer(email, mailPassword, transferTo);
+      transfer(email, mailPassword, transferTo,
+          (wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount()));
     } else {
       throw new RuntimeException("转账失败");
     }
