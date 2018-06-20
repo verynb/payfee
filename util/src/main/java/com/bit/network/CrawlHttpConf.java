@@ -42,6 +42,13 @@ public class CrawlHttpConf {
         this.requestParams = requestParams;
     }
 
+    public CrawlHttpConf(Map<String, Object> requestParams,Map<String, String> header) {
+        this.requestHeaders.putAll(DEFAULT_HEADERS);
+        this.requestHeaders.put("cookie", CookieUtil.cookieBuilder());
+        this.requestHeaders.putAll(header);
+        this.requestParams = requestParams;
+    }
+
     public enum HttpMethod {
         GET,
         POST,

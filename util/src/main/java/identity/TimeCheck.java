@@ -31,7 +31,8 @@ public class TimeCheck {
   }
 
   public static Boolean isCurrentDay(Long time) {
-    DateTime dateTime = new DateTime(GetNetworkTime.getNetworkDatetime());
+//    DateTime dateTime = new DateTime(GetNetworkTime.getNetworkDatetime());
+    DateTime dateTime = new DateTime();
     return dateTime.minuteOfDay().withMinimumValue().isBefore(time) && dateTime.minuteOfDay().withMaximumValue()
         .isAfter(time);
   }

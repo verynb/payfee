@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.TransferUserInfo;
+import command.api.TransferUserInfo;
 
 @Slf4j
 public class LoadData {
@@ -29,25 +29,25 @@ public class LoadData {
     CsvReader csvReader = new CsvReader();
     csvReader.setContainsHeader(true);
     CsvContainer csv = null;
-    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo("hyyi08", "puffs258180",
-        "lhha003", "hh8389lhhl", "lianghuihua01@bookbitbtc.com", "SHENzen007v", 200, "0", 1));
+    List<TransferUserInfo> userInfos = Lists.newArrayList();
     try {
       csv = csvReader.read(Paths.get(filePath), StandardCharsets.UTF_8);
       if (csv == null) {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
-        double account = row.getField("转帐金额") == null ? 200 : Double.valueOf(row.getField("转帐金额"));
+        double account = row.getField("transferAmount") == null ? 200 : Double.valueOf(row.getField("transferAmount"));
         i++;
         TransferUserInfo userInfo = new TransferUserInfo(
-            row.getField("用户id"),
-            row.getField("用户密码"),
-            row.getField("上层帐号"),
-            row.getField("上层帐号密码"),
-            row.getField("上层帐号邮件"),
-            row.getField("上层帐号邮件密码"),
+            row.getField("userName"),
+            row.getField("password"),
+            row.getField("puserName"),
+            row.getField("ppassword"),
+            row.getField("pmail"),
+            row.getField("pmailPassword"),
             account,
             row.getField("flag"),
+            row.getField("flagMessage"),
             i
         );
         if (userInfo.filterUserInfo()) {
@@ -68,21 +68,27 @@ public class LoadData {
   }
 
 
-  public static void writeResult(List<TransferUserInfo> userInfos) {
+  public static void writeResult(final List<TransferUserInfo> userInfos) {
     try {
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
               new FileOutputStream(new File("./account.csv")), "UTF-8"));
-      String header = "tuser,tpassword,flag\r\n";
+      String header = "userName,password,puserName,ppassword,pmail,pmailPassword,transferAmount,flag,flagMessage\r\n";
       writer.write(header);
       for (int i = 0; i < userInfos.size(); i++) {
-        /*TransferUserInfo info = userInfos.get(i);
+        TransferUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();
         str.append(info.getUserName().toString() + ","
             + info.getPassword().toString() + ","
-            + info.getFlag().toString() + "\r\n");
+            + info.getPuserName().toString() + ","
+            + info.getPpassword().toString() + ","
+            + info.getPmail().toString() + ","
+            + info.getPmailPassword().toString() + ","
+            + info.getTransferAmount() + ","
+            + info.getFlag().toString() + ","
+            + info.getFlagMessage().toString() + "\r\n");
         writer.write(str.toString());
-        writer.flush();*/
+        writer.flush();
       }
       writer.close();
     } catch (IOException e) {

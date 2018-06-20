@@ -61,6 +61,7 @@ public class LoginTask {
   }
 
   public static LoginResult tryTimes(int tryTime, int space, String userName, String password) {
+    logger.info("用户[" + userName + "]开始登录");
     if (StringUtils.isBlank(userName)) {
       logger.info("用户名为空");
       return new LoginResult(401, LoginExceptionConstance.USER_NAME_ISNULL);

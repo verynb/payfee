@@ -24,11 +24,18 @@ public class SendMailTask {
     paramMap.put("authenticity_token", token);
     paramMap.put("token[user_id]", userId);
     paramMap.put("token[token_type]", "transfer");
-//    result.getHttpConf().getRequestHeaders().put("x-requested-with", "XMLHttpRequest");
     return paramMap;
   }
 
+  private static Map getHeader() {
+    Map<String, String> headerMap = Maps.newHashMap();
+   headerMap.put("x-requested-with", "XMLHttpRequest");
+    return headerMap;
+  }
+
+
   public static SendMailResult tryExcute(String token, String userId, long space) {
+    logger.info("开始发送邮件["+userId+"]");
     SendMailResult result = execute(token, userId);
     if (result == null || result.getError().equals("number_exceeded")) {
       logger.info("token无效，开始取消token");
@@ -52,7 +59,7 @@ public class SendMailTask {
     HttpPostResult response = null;
     try {
       response = HttpUtils
-          .doPost(CrawlMeta.getNewInstance(SendMailTask.class, URL), new CrawlHttpConf(getParam(token, userId)));
+          .doPost(CrawlMeta.getNewInstance(SendMailTask.class, URL), new CrawlHttpConf(getParam(token, userId),getHeader()));
       String returnStr = EntityUtils.toString(response.getResponse().getEntity());
       logger.info("发送邮件服务器返回值-" + returnStr);
       if (returnStr.contains("number_exceeded")) {
@@ -64,7 +71,7 @@ public class SendMailTask {
       }
     } catch (Exception e) {
       logger.info("发送邮件请求异常-" + e.getMessage());
-      return null;
+      return new SendMailResult("failure", e.getMessage());
     } finally {
       response.getHttpPost().releaseConnection();
       response.getHttpClient().getConnectionManager().shutdown();

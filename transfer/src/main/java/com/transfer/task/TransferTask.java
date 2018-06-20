@@ -20,7 +20,7 @@ public class TransferTask {
   private static Logger logger = LoggerFactory.getLogger(TransferTask.class);
   private static String URL = "https://www.bitbackoffice.com/transfers";
 
-  public static Map getParam(TransferParam param) {
+  private static Map getParam(TransferParam param) {
     Map<String, String> paramMap = Maps.newHashMap();
     paramMap.put("authenticity_token", param.getAuthenticityToken());
     paramMap.put("transfer_to", param.getTransferTo());
@@ -36,18 +36,24 @@ public class TransferTask {
         .put("partition_transfer_partition[receiver_id]", param.getReceiverId());
     paramMap
         .put("partition_transfer_partition[receiver_wallet_id]", "");
-   /* result.getHttpConf().getRequestHeaders().put("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
-    result.getHttpConf().getRequestHeaders().put("referer", URL);
-    result.getHttpConf().getRequestHeaders().put("origin", "https://www.bitbackoffice.com");
-    result.getHttpConf().getRequestHeaders().put("x-requested-with", "XMLHttpRequest");*/
     return paramMap;
   }
+
+  private static Map getHeader() {
+    Map<String, String> headMap = Maps.newHashMap();
+    headMap.put("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
+    headMap.put("referer", URL);
+    headMap.put("origin", "https://www.bitbackoffice.com");
+    headMap.put("x-requested-with", "XMLHttpRequest");
+    return headMap;
+  }
+
 
   public static TransferResult execute(TransferParam param) {
     HttpPostResult response = null;
     try {
       response = HttpUtils
-          .doPost(CrawlMeta.getNewInstance(TransferTask.class, URL), new CrawlHttpConf(getParam(param)));
+          .doPost(CrawlMeta.getNewInstance(TransferTask.class, URL), new CrawlHttpConf(getParam(param), getHeader()));
       String returnStr = EntityUtils.toString(response.getResponse().getEntity());
       logger.info("转账服务器返回:" + returnStr);
       if (returnStr.contains("invalid_token") || returnStr.contains("invalid_transfer")) {

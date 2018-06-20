@@ -2,6 +2,7 @@ package com.transfer.job;
 
 import com.bit.network.GetNetworkTime;
 import com.bit.network.RandomUtil;
+import com.bit.network.SessionHolder;
 import com.transfer.entity.SendMailResult;
 import com.transfer.entity.TransferPageData;
 import com.transfer.entity.TransferParam;
@@ -18,6 +19,7 @@ import com.transfer.task.SendMailTask;
 import com.transfer.task.TransferPageTask;
 import com.transfer.task.TransferTask;
 import com.transfer.task.TransferUtil;
+import command.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import java.util.List;
 import java.util.Objects;
@@ -76,12 +78,14 @@ public class TransferCrawlJob extends AbstractJob {
         this.userInfo.getPassword());
     if (!loginResult.isActive()) {
       logger.info("用户[" + this.userInfo + "]登录失败");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-2a","用户[" + this.userInfo + "]登录失败");
+      //todo 会写失败日志
       return;
     }
     //登录成功
     Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
     transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
-        this.userInfo.getTransferTo(),this.userInfo.getTransferAmount());
+        this.userInfo.getTransferTo(), this.userInfo.getTransferAmount());
 
   }
 
@@ -90,57 +94,67 @@ public class TransferCrawlJob extends AbstractJob {
    */
   private void transfer(String email, String mailPassword, String transferTo, Double transferAmount)
       throws InterruptedException {
-    logger.info("开始抓取抓取转账页面数据");
     TransferPageData getTransferPage = TransferPageTask.tryTimes(config);
-    if (CollectionUtils.isNotEmpty(getTransferPage.getTransferWallets())) {
-      List<TransferWallet> filterList = getTransferPage.getTransferWallets()
-          .stream()
-          .filter(t -> t.getAmount() > 0)
-          .collect(Collectors.toList());
-      if (CollectionUtils.isEmpty(filterList)) {
-        logger.info("转账金额没有大于0的数据");
-        throw new RuntimeException("转账金额没有大于0的数据");
-      }
-      if (!TransferUtil.enough(filterList, transferAmount)) {
-        logger.info("转账总额小于[" + transferAmount + "]");
-        throw new RuntimeException("转账总额小于[" + transferAmount + "]");
-      }
-      TransferWallet wallet = filterList.get(0);
-      Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
-      UserInfo receiverInfo = GetReceiverTask.execute(transferTo);
-      if (!Objects.isNull(receiverInfo) && receiverInfo.getResponse()) {
-        Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
-        logger.info(
-            "获取转出账户信息成功===>" + receiverInfo.toString());
-        SendMailResult mailResult =
-            SendMailTask
-                .tryExcute(getTransferPage.getAuthToken(), getTransferPage.getTransferUserId(),
-                    RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        if (!Objects.isNull(mailResult)) {//邮件发送成功的情况
-          long mailStartTime = GetNetworkTime.getNetworkDatetime();
-          long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 1000 + 30000;
-          logger.info(
-              "休眠" + mailSpace + "ms后读取邮件");
-          Thread.sleep(mailSpace);
-          logger.info("开始读取邮件");
-          List<MailTokenData> tokenData = tryReceiveMail(email, mailPassword, mailStartTime, mailSpace,
-              config.getTransferErrorTimes());
-          if (CollectionUtils.isEmpty(tokenData)) {
-            throw new RuntimeException("获取邮件信息失败");
-          } else {
-            logger
-                .info("邮件解析成功");
-            transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData,
-                transferAmount);
-          }
-        } else {
-          throw new RuntimeException("获取邮件信息失败");
-        }
-      } else {
-        throw new RuntimeException("获取转出人信息失败");
-      }
+    if (!getTransferPage.isActive()) {
+      logger.info("抓取转账页面失败" + getTransferPage.toString());
+      //todo 会写失败日志
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-1a","抓取转账页面失败");
+      return;
+    }
+    logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
+    List<TransferWallet> filterList = getTransferPage.getTransferWallets()
+        .stream()
+        .filter(t -> t.getAmount() > 0)
+        .collect(Collectors.toList());
+    if (CollectionUtils.isEmpty(filterList)) {
+      logger.info("转账金额没有大于0的数据[" + getTransferPage.toString() + "]");
+      //todo 会写失败日志
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0a","转账金额小于0");
+      return;
+    }
+    if (!TransferUtil.enough(filterList, transferAmount)) {
+      logger.info("转账总额小于[" + transferAmount + "]");
+      //todo 会写失败日志，记录状态
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1a","转账总额小于[" + transferAmount + "]");
+      return;
+    }
+    TransferWallet wallet = filterList.get(0);
+//    Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
+    UserInfo receiverInfo = GetReceiverTask.execute(transferTo);
+    if (!receiverInfo.isActive()) {
+      logger.info("获取转出账户[" + transferTo + "]失败");
+      //todo 会写失败日志，记录状态
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "2a","获取转出账户[" + transferTo + "]失败");
+      return;
+    }
+//    Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
+    logger.info("获取转出账户[" + transferTo + "]成功");
+    SendMailResult mailResult =
+        SendMailTask
+            .tryExcute(getTransferPage.getAuthToken(), getTransferPage.getTransferUserId(),
+                RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
+    if (!mailResult.isActive()) {
+      logger.info("发送邮件[" + getTransferPage.getTransferUserId() + "]失败");
+      //todo 会写失败日志，记录状态
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "3a","发送邮件给[" + getTransferPage.getTransferUserId() + "]失败");
+      return;
+    }
+    long mailStartTime = GetNetworkTime.getNetworkDatetime();
+    long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 1000 + 10000;
+    logger.info(
+        "休眠" + mailSpace + "ms后读取邮件");
+    Thread.sleep(mailSpace);
+    List<MailTokenData> tokenData = tryReceiveMail(email, mailPassword, mailStartTime, mailSpace,
+        config.getTransferErrorTimes());
+    if (CollectionUtils.isEmpty(tokenData)) {
+      logger.info("获取邮件信息失败");
+      //todo 会写失败日志，记录状态
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "4a","获取邮件信息失败");
+      return;
     } else {
-      throw new RuntimeException("抓取转账页面数据失败");
+      logger.info("邮件解析成功");
+      transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData,
+          transferAmount);
     }
   }
 
@@ -148,6 +162,7 @@ public class TransferCrawlJob extends AbstractJob {
       int tryTimes)
       throws InterruptedException {
     for (int i = 1; i <= tryTimes; i++) {
+      logger.info("开始读取邮件");
       List<MailTokenData> tokenData = ImapMailToken
           .filterMailsForIsNew(userInfo.getUserName(), email, mailPassword);
       if (CollectionUtils.isEmpty(tokenData)) {
@@ -181,7 +196,6 @@ public class TransferCrawlJob extends AbstractJob {
     );
     logger.info("开始转账");
     logger.info("转账参数=" + param.toString());
-
     TransferResult transferCode = TransferTask.execute(param);
     if (transferCode.getError().equals("invalid_token")) {
       tokenData.remove(0);
@@ -201,15 +215,21 @@ public class TransferCrawlJob extends AbstractJob {
       logger.info("转账成功，休眠500毫秒执行下一轮转账");
       Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
       logger.info("下一轮转账开始");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "6a","转账成功");
       transfer(email, mailPassword, transferTo,
           (wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount()));
     } else {
-      throw new RuntimeException("转账失败");
+      logger.info("转账失败");
+      //todo 会写失败日志，记录状态
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "5a","转账失败");
+      return;
     }
   }
 
   @Override
   public void afterRun() {
-
+    SessionHolder.removeCookie();
   }
+
+
 }

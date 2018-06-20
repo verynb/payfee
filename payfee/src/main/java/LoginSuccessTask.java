@@ -2,6 +2,7 @@ import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
+import com.bit.network.RandomUtil;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,9 +24,11 @@ public class LoginSuccessTask {
     private static String URL = "https://www.bitbackoffice.com";
 
     public static LoginSuccessResult execute() {
+
         HttpResult response = null;
         try {
             response = HttpUtils.doGet(CrawlMeta.getNewInstance(LoginAuthTokenTask.class, URL), new CrawlHttpConf());
+            Thread.sleep(RandomUtil.ranNum(1 * 1000));
             Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
             return new LoginSuccessResult(200, doc,"success");
         } catch (Exception e) {

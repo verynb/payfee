@@ -1,10 +1,13 @@
 package com.transfer.entity;
 
+import lombok.ToString;
+
 /**
  * Created by yuanj on 2017/11/28.
  */
-
+@ToString
 public class SendMailResult {
+
   private String status;
   private String error;
 
@@ -12,7 +15,9 @@ public class SendMailResult {
     this.status = status;
     this.error = error;
   }
-  public SendMailResult(){}
+
+  public SendMailResult() {
+  }
 
   public String getStatus() {
     return status;
@@ -28,5 +33,9 @@ public class SendMailResult {
 
   public void setError(String error) {
     this.error = error;
+  }
+
+  public Boolean isActive() {
+    return status.equals("success") && !error.equals("number_exceeded");
   }
 }

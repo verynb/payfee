@@ -1,5 +1,7 @@
 import RanewalJob.AbstractJob;
+import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
+import command.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -14,7 +16,7 @@ import support.LoginSuccessResult;
 import support.RenewalAmount;
 import support.RenewalParam;
 import support.RenewalUtil;
-import support.TransferUserInfo;
+import command.api.TransferUserInfo;
 import login.task.LoginTask;
 
 /**
@@ -59,15 +61,20 @@ public class SimpleCrawlJob extends AbstractJob {
         password);
     if (!loginResult.isActive()) {
       logger.info("用户[" + userName + "]登录失败");
-      filterAndUpdateFlag(index, "-2");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "-2b","用户[" + userName + "]登录失败");
       return;
     }
+    logger.info("用户[" + userName + "]登录成功");
+    logger.info(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000+"ms后开始判断是否需要续期");
+    Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
+    logger.info("开始判断是否需要续期");
     LoginSuccessResult successResult = LoginSuccessTask.execute();
     if (!successResult.isRenewal()) {
       logger.info("用户[" + userName + "]不需要续期");
-      filterAndUpdateFlag(index, "0");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "0b","用户[" + userName + "]不需要续期");
       return;
     }
+    logger.info("用户[" + userName + "]需要续期");
     RenewalParam param = successResult.filterIdValue();
     logger.info("用户[" + userName + "]续期参数" + param.toString());
     RenewalAmount amount = successResult.filterWallet();
@@ -82,16 +89,16 @@ public class SimpleCrawlJob extends AbstractJob {
       int code = RenewalTask.execute(param);
       if (code == 200) {
         logger.info("用户[" + userName + "]续期成功");
-        filterAndUpdateFlag(index, String.valueOf(amount.getAmount()));
+        UserInfoFilterUtil.filterAndUpdateFlag(index, String.valueOf(amount.getAmount()),"用户[" + userName + "]续期成功");
         return;
       } else {
         logger.info("用户[" + userName + "]续期失败");
-        filterAndUpdateFlag(index, "2");
+        UserInfoFilterUtil.filterAndUpdateFlag(index, "2b","用户[" + userName + "]续期失败");
         return;
       }
     } else {
       logger.info("用户[" + userName + "]续期余额不足");
-      filterAndUpdateFlag(index, "1");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "1b","用户[" + userName + "]续期余额不足");
       return;
     }
 
@@ -102,12 +109,4 @@ public class SimpleCrawlJob extends AbstractJob {
     SessionHolder.removeCookie();
   }
 
-  private void filterAndUpdateFlag(int index, String flag) {
-    Optional<TransferUserInfo> filter = ScheduledThread.users.stream()
-        .filter(u -> u.getIndex() == index)
-        .findFirst();
-    if (filter.isPresent()) {
-      filter.get().setFlag(flag);
-    }
-  }
 }

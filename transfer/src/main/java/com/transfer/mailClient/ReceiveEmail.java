@@ -46,7 +46,7 @@ public class ReceiveEmail {
 
   public String getSendUser(int endIndex) {
     String str = replaceBlank(bodyText.toString());
-    return str.substring(36, 36+endIndex);
+    return str.substring(36, 36 + endIndex);
   }
 
   public void getMailContent(Part part) throws Exception {
@@ -77,6 +77,10 @@ public class ReceiveEmail {
   public boolean isNew() throws MessagingException {
     Flags flags = mimeMessage.getFlags();
     return !flags.contains(Flags.Flag.SEEN);
+  }
+
+  public void delete() throws MessagingException {
+    mimeMessage.setFlag(Flags.Flag.DELETED, true);
   }
 
   public String replaceBlank(String str) {

@@ -1,10 +1,13 @@
 package com.transfer.entity;
 
+import lombok.Value;
+
 /**
  * Created by yuanj on 2017/11/28.
  */
+@Value
+public class UserInfo {
 
-public class  UserInfo {
   private String user_id;
   private String name;
   private Boolean response;
@@ -13,25 +16,14 @@ public class  UserInfo {
     return user_id;
   }
 
-  public void setUser_id(String user_id) {
-    this.user_id = user_id;
-  }
-
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public Boolean getResponse() {
     return response;
   }
 
-  public void setResponse(Boolean response) {
-    this.response = response;
-  }
 
   @Override
   public String toString() {
@@ -40,5 +32,9 @@ public class  UserInfo {
         ", name='" + name + '\'' +
         ", response=" + response +
         '}';
+  }
+
+  public Boolean isActive() {
+    return response;
   }
 }

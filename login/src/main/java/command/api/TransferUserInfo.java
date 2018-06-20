@@ -1,4 +1,4 @@
-package support;
+package command.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +24,7 @@ public class TransferUserInfo {
   private String pmailPassword;
   private double transferAmount;
   private String flag;
+  private String flagMessage;
   private int index;
 
 

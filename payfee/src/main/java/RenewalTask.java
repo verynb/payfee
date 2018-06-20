@@ -23,6 +23,8 @@ public class RenewalTask {
     private static Logger logger = LoggerFactory.getLogger(RenewalTask.class);
     private static String URL = "https://www.bitbackoffice.com/bond_payments";
 
+    private static String REFERER_URL = "https://www.bitbackoffice.com";
+
     private static Map getParam(RenewalParam param) {
         Map<String, String> paramMap = Maps.newHashMap();
         paramMap.put(RenewalIdConstance.AUTHENTICITYTOKEN, param.getAuthenticityToken());
@@ -43,11 +45,20 @@ public class RenewalTask {
         paramMap.put(INPUTAMOUNT, param.getInputAmount());
         return paramMap;
     }
+    private static Map getHeader() {
+        Map<String, String> headMap = Maps.newHashMap();
+        headMap.put("Content-type", "application/x-www-form-urlencoded;charset=UTF-8");
+        headMap.put("referer", REFERER_URL);
+        headMap.put("origin", REFERER_URL);
+        headMap.put("x-requested-with", "XMLHttpRequest");
+        return headMap;
+    }
+
 
     public static int execute(RenewalParam param) {
         HttpPostResult response = null;
         try {
-            CrawlHttpConf conf = new CrawlHttpConf(getParam(param));
+            CrawlHttpConf conf = new CrawlHttpConf(getParam(param),getHeader());
             response = HttpUtils
                     .doPost(CrawlMeta.getNewInstance(RenewalTask.class, URL), conf);
             String returnStr = EntityUtils.toString(response.getResponse().getEntity());

@@ -1,44 +1,75 @@
 package com.transfer.entity;
 
+import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.Value;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 /**
  * Created by Administrator on 2017/11/27.
  */
+@Getter
+@Setter
 public class TransferPageData {
 
-  private String authToken;
-  private String transferUserId;
-  private List<TransferWallet> transferWallets;
+  private String authToken = "";
+  private String transferUserId = "";
+  private List<TransferWallet> transferWallets = Lists.newArrayList();
+  private Document doc = null;
 
-  public TransferPageData(String authToken, String transferUserId, List<TransferWallet> transferWallets) {
-    this.authToken = authToken;
-    this.transferUserId = transferUserId;
+  public TransferPageData(Document doc) {
+    this.doc = doc;
+    init();
+  }
+
+  private void init() {
+    if (doc == null) {
+      return;
+    }
+    Element walletElement = doc.select("select[name=partition_transfer_partition[user_wallet_id]]").first();
+    if (Objects.isNull(walletElement)) {
+      return;
+    }
+    List<TransferWallet> transferWallets = walletElement.children().stream()
+        .filter(e -> StringUtils.isNotBlank(e.val()))
+        .map(e -> {
+          String walletId = e.val();
+          Double amount = Double.valueOf(e.text().substring(e.text().indexOf("$") + 1, e.text().length()));
+          return new TransferWallet(walletId, amount);
+        }).collect(Collectors.toList());
+
+    Element authTokenElement = doc.select("input[name=authenticity_token]").first();
+    Element transferUserIdElement = doc.select("input[name=partition_transfer_partition[user_id]]").first();
+    this.authToken = authTokenElement.val();
+    this.transferUserId = transferUserIdElement.val();
     this.transferWallets = transferWallets;
+
   }
 
-  public String getAuthToken() {
-    return authToken;
+  public Boolean isActive() {
+    if (doc == null) {
+      return false;
+    }
+    if (CollectionUtils.isEmpty(this.transferWallets)) {
+      return false;
+    }
+    return true;
   }
 
-  public void setAuthToken(String authToken) {
-    this.authToken = authToken;
-  }
-
-  public String getTransferUserId() {
-    return transferUserId;
-  }
-
-  public void setTransferUserId(String transferUserId) {
-    this.transferUserId = transferUserId;
-  }
-
-  public List<TransferWallet> getTransferWallets() {
-    return transferWallets;
-  }
-
-  public void setTransferWallets(
-      List<TransferWallet> transferWallets) {
-    this.transferWallets = transferWallets;
+  @Override
+  public String toString() {
+    return "TransferPageData{" +
+        "authToken='" + authToken + '\'' +
+        ", transferUserId='" + transferUserId + '\'' +
+        ", transferWallets=" + transferWallets +
+        '}';
   }
 }

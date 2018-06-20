@@ -26,13 +26,21 @@ public class GetReceiverTask {
     return paramMap;
   }
 
+  private static Map getHeader() {
+    Map<String, String> headMap = Maps.newHashMap();
+    headMap.put("x-requested-with", "XMLHttpRequest");
+    return headMap;
+  }
+
   public static UserInfo execute(String userName) {
+    logger.info("开始获取转出账户[" + userName + "]信息");
     HttpResult response = null;
     try {
       response = HttpUtils
-          .doGet(CrawlMeta.getNewInstance(GetReceiverTask.class, URL), new CrawlHttpConf(getParam(userName)));
+          .doGet(CrawlMeta.getNewInstance(GetReceiverTask.class, URL),
+              new CrawlHttpConf(getParam(userName), getHeader()));
       String jsonData = EntityUtils.toString(response.getResponse().getEntity());
-      logger.info("获取转账人信息=" + jsonData);
+//      logger.info("获取转账人信息=" + jsonData);
       UserInfo userInfo = GsonUtil.jsonToObject(jsonData, UserInfo.class);
       if (!userInfo.getResponse()) {
         logger.info("转账人[" + userName + "]不存在或者不存在于您的二进制树中");
@@ -40,7 +48,7 @@ public class GetReceiverTask {
       return userInfo;
     } catch (Exception e) {
       logger.info("获取转账人信息失败" + e.getMessage());
-      return null;
+      return new UserInfo("", "", false);
     } finally {
       response.getHttpGet().releaseConnection();
       response.getHttpClient().getConnectionManager().shutdown();
