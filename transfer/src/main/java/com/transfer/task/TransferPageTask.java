@@ -48,7 +48,7 @@ public class TransferPageTask {
       } else {
         try {
           logger.info(code.toString());
-          Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000 + 5000);
+          Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
         } catch (InterruptedException e) {
         }
         logger.info("获取登录页面请求重试，剩余" + (config.getTransferErrorTimes() + 2 - i) + "次");

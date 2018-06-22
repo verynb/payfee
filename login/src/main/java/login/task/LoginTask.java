@@ -42,15 +42,17 @@ public class LoginTask {
       CrawlHttpConf conf = new CrawlHttpConf(getParam(tokenValue, userName, password));
       response = HttpUtils
           .doPost(CrawlMeta.getNewInstance(LoginTask.class, URL), conf);
-      Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
-      Element element = doc.select("body").first();
-      String value = element.text();
-      if (value.contains("You are being") || response.getResponse().getStatusLine().getStatusCode() == 302) {
+//      Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
+//      Element element = doc.select("body").first();
+//      String value = element.text();
+      if (response.getResponse().getStatusLine().getStatusCode() == 302) {
         logger.info("用户[" + userName + "]登录成功");
         return new LoginResult(200, LoginExceptionConstance.LOGIN_SUCCESS);
-      } else {
-        logger.info("用户名或密码错误");
-        return new LoginResult(400, LoginExceptionConstance.ACCOUNT_EXCEPETION);
+      } else if(response.getResponse().getStatusLine().getStatusCode()==422){
+        logger.info("无法处理的请求实体,cookie过期");
+        return new LoginResult(response.getResponse().getStatusLine().getStatusCode(), LoginExceptionConstance.ACCOUNT_EXCEPETION);
+      }else {
+        return new LoginResult(response.getResponse().getStatusLine().getStatusCode(), LoginExceptionConstance.NET_WORK_EXCEPETION);
       }
     } catch (Exception e) {
       return new LoginResult(500, LoginExceptionConstance.NET_WORK_EXCEPETION);
@@ -60,7 +62,8 @@ public class LoginTask {
     }
   }
 
-  public static LoginResult tryTimes(int tryTime, int space, String userName, String password) {
+  public static LoginResult tryTimes(int tryTime, int space, String userName, String password)
+      throws InterruptedException {
     logger.info("用户[" + userName + "]开始登录");
     if (StringUtils.isBlank(userName)) {
       logger.info("用户名为空");
@@ -71,8 +74,9 @@ public class LoginTask {
       return new LoginResult(401, LoginExceptionConstance.PASSWORLD_ISNULL);
     }
     LoginAuthTokenData data = LoginAuthTokenTask.tryTimes(tryTime, space);
+    Thread.sleep(RandomUtil.ranNum(20));
     if (!data.isActive()) {
-      logger.info("登陆token为空");
+      logger.info("登录token为空");
       return new LoginResult(401, LoginExceptionConstance.LOGIN_TOKEN_ISNULL);
     }
     for (int i = 1; i <= tryTime + 2; i++) {
@@ -82,7 +86,7 @@ public class LoginTask {
         return loginResult;
       } else {
         try {
-          Thread.sleep(RandomUtil.ranNum(space) * 1000 + 0);
+          Thread.sleep(RandomUtil.ranNum(space) * 100 + 0);
         } catch (InterruptedException e) {
         }
         logger.info("登录请求重试，剩余" + (tryTime + 2 - i) + "次");
