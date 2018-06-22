@@ -21,7 +21,7 @@ import command.api.TransferUserInfo;
 public class ScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(ScheduledThread.class);
-  private static String version = "0.2";
+  private static String version = "0.3";
 
   private static final String USER_PATH = "./account.csv";
   private static final ThreadConfig config = new ThreadConfig(2, 10, 50);
