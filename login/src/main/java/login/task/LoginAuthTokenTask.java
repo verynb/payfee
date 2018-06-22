@@ -50,7 +50,7 @@ public class LoginAuthTokenTask {
                 return loginAuthTokenData;
             } else {
                 try {
-                    Thread.sleep(RandomUtil.ranNum(space) * 1000 + 5000);
+                    Thread.sleep(RandomUtil.ranNum(space) * 1000 );
                 } catch (InterruptedException e) {
                 }
                 logger.info("获取登录页面请求重试，剩余" + (tryTime + 2 - i) + "次");
