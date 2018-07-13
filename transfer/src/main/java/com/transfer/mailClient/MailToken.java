@@ -22,13 +22,15 @@ public class MailToken {
 
   private static final String PROTOCOL = "pop3";
   private static final String PORT = "110";
-  private static final String HOST = "pop3.mxhichina.com";
+  private static final String HOST = "pop3.aliyun.com";
 
   private static Store getStore(String mail, String password) throws MessagingException {
     Properties props = new Properties();
     props.setProperty("mail.store.protocol", PROTOCOL);       // 协议
     props.setProperty("mail.pop3.port", PORT);             // 端口
     props.setProperty("mail.pop3.host", HOST);    // pop3服务器
+    props.setProperty("mail.pop3.auth", "true");// 指定验证为true
+    props.setProperty("mail.debug", "true");
     Session session = Session.getInstance(props);
     Store store = session.getStore("pop3");
     store.connect(mail, password);
@@ -81,5 +83,8 @@ public class MailToken {
     } else {
       return false;
     }
+  }
+  public static void main(String[] args) {
+    System.out.println(MailToken.filterMails("foshan001@aliyun.com", "liumeichen123"));
   }
 }

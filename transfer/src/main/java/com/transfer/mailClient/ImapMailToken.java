@@ -1,6 +1,7 @@
 package com.transfer.mailClient;
 
 import com.google.common.collect.Lists;
+import com.sun.mail.imap.IMAPFolder;
 import com.transfer.job.TransferCrawlJob;
 import identity.TimeCheck;
 import java.util.ArrayList;
@@ -34,7 +35,9 @@ public class ImapMailToken {
 
   private static final String PROTOCOL = "imap";
   private static final String PORT = "143";
-  private static final String HOST = "imap.mxhichina.com";
+  //    private static final String HOST = "imap.mxhichina.com";//阿里云企业邮箱
+//  private static final String HOST = "imap.163.com";//163邮箱
+private static final String HOST = "imap.aliyun.com";//阿里云个人邮箱
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
   private static Store getStore(String mail, String password) throws MessagingException {
@@ -42,6 +45,8 @@ public class ImapMailToken {
     props.setProperty("mail.imap.protocol", PROTOCOL);       // 协议
     props.setProperty("mail.imap.port", PORT);             // 端口
     props.setProperty("mail.imap.host", HOST);    // imap服务器
+    props.put("mail.imap.auth.plain.disable", "true");
+//    props.setProperty("mail.debug", "true");
     Session session = Session.getInstance(props);
     Store store = session.getStore("imap");
     store.connect(mail, password);
@@ -51,15 +56,15 @@ public class ImapMailToken {
 
   public static List<MailTokenData> filterMailsForIsNew(String userName, String mail, String password) {
     Store store = null;
-    Folder folder = null;
-    Folder rubbishFolder = null;
+    IMAPFolder folder = null;
+    IMAPFolder rubbishFolder = null;
     List<MailTokenData> dataList = Lists.newArrayList();
     try {
       logger.info("开始连接邮件服务器");
       store = getStore(mail, password);
       logger.info("连接邮件服务器成功");
-      rubbishFolder = store.getFolder("垃圾邮件");
-      folder = store.getFolder("INBOX");
+      rubbishFolder = (IMAPFolder) store.getFolder("垃圾邮件");
+      folder = (IMAPFolder) store.getFolder("INBOX");
       rubbishFolder.open(Folder.READ_WRITE);
       folder.open(Folder.READ_WRITE);
       logger.info("开始读取收件箱");
@@ -117,55 +122,15 @@ public class ImapMailToken {
     }
   }
 
-  public static List<MailTokenData> filterMailsForOld(String userName, String mail, String password) {
-    Store store = null;
-    Folder folder = null;
-    Folder rubbishFolder = null;
-    List<MailTokenData> dataList = Lists.newArrayList();
-    try {
-      store = getStore(mail, password);
-      rubbishFolder = store.getFolder("垃圾邮件");
-      folder = store.getFolder("INBOX");
-      rubbishFolder.open(Folder.READ_WRITE);
-      folder.open(Folder.READ_WRITE);
-      List<Message> inboxMessages = new ArrayList<Message>(Arrays.asList(folder.getMessages()));
-      List<Message> rubbishMessages = new ArrayList<Message>(Arrays.asList(rubbishFolder.getMessages()));
-      inboxMessages.addAll(rubbishMessages);
-      for (int i = 0; i < inboxMessages.size(); i++) {
-        ReceiveEmail re = new ReceiveEmail((MimeMessage) inboxMessages.get(i));
-        if (StringUtils.isBlank(re.getSubject()) || !re.getSubject()
-            .equals("Token for your TRANSFER")) {
-          continue;
-        }
-        if (!TimeCheck.isCurrentDay(re.getSentDate())) {
-          continue;
-        }
-        re.getMailContent((Part) inboxMessages.get(i));
-        if (!re.getSendUser(userName.length()).equals(userName)) {
-          re.getMimeMessage().setFlag(Flags.Flag.SEEN, false);
-          continue;
-        }
-        dataList.add(new MailTokenData(re.getToken(), re.getSentDate()));
-      }
-      dataList = dataList
-          .stream()
-          .sorted(Comparator.comparing(MailTokenData::getDate).reversed())
-          .collect(Collectors.toList());
-    } catch (Exception e) {
-      return dataList;
-    } finally {
-      try {
-        folder.close(true);
-        store.close();
-      } catch (MessagingException e) {
-
-      }
-      return dataList;
-    }
-  }
-
-
   public static void main(String[] args) {
-    System.out.println(ImapMailToken.filterMailsForIsNew("lhha001", "lianghuihua01@bookbitbtc.com", "SHENzen007v"));
+    /*for(int i=0;i<100;i++){
+      new Thread(() ->{
+        ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan001@aliyun.com", "liumeichen123");
+      }).start();
+    }*/
+    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan001@aliyun.com", "liumeichen123"));
+    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan003@aliyun.com", "liumeichen123"));
+    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan002@aliyun.com", "liumeichen123"));
+    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "yuanjiangfreedom@aliyun.com", "yuanjiang123"));
   }
 }
