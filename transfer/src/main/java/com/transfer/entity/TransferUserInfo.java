@@ -1,10 +1,15 @@
 package com.transfer.entity;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Created by yuanj on 2017/12/1.
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class TransferUserInfo {
 
   private int row;
@@ -13,106 +18,7 @@ public class TransferUserInfo {
   private String email;
   private String mailPassword;
   private String transferTo;
-  private Double transferAmount;
+  private String flag;
+  private String flagMessage;
 
-  public TransferUserInfo(int row, String userName, String password, String email, String mailPassword,
-      String transferTo,  Double transferAmount) {
-    this.row = row;
-    this.userName = userName;
-    this.password = password;
-    this.email = email;
-    this.mailPassword = mailPassword;
-    this.transferTo = transferTo;
-    this.transferAmount = transferAmount;
-  }
-
-  public TransferUserInfo() {
-  }
-
-  public Double getTransferAmount() {
-    return transferAmount;
-  }
-
-  public void setTransferAmount(Double transferAmount) {
-    this.transferAmount = transferAmount;
-  }
-
-  public int getRow() {
-    return row;
-  }
-
-  public void setRow(int row) {
-    this.row = row;
-  }
-
-  public String getUserName() {
-    return userName;
-  }
-
-  public void setUserName(String userName) {
-    this.userName = userName;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getMailPassword() {
-    return mailPassword;
-  }
-
-  public void setMailPassword(String mailPassword) {
-    this.mailPassword = mailPassword;
-  }
-
-  public String getTransferTo() {
-    return transferTo;
-  }
-
-  public void setTransferTo(String transferTo) {
-    this.transferTo = transferTo;
-  }
-
-
-  public Boolean filterUserInfo() {
-    Boolean status = true;
-    if (StringUtils.isBlank(this.getUserName())) {
-      status = false;
-    }
-    if (StringUtils.isBlank(this.getPassword())) {
-      status = false;
-    }
-    if (StringUtils.isBlank(this.getEmail())) {
-      status = false;
-    }
-    if (StringUtils.isBlank(this.getMailPassword())) {
-      status = false;
-    }
-    if (StringUtils.isBlank(this.getTransferTo())) {
-      status = false;
-    }
-    return status;
-  }
-
-
-  @Override
-  public String toString() {
-    return "TransferUserInfo{" +
-        "转出帐号='" + userName + '\'' +
-        ", 转出帐号邮箱='" + email + '\'' +
-        ", 接收帐号='" + transferTo + '\'' +
-        '}';
-  }
 }

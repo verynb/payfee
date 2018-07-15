@@ -99,7 +99,7 @@ public class RequestPayoutJob extends AbstractJob {
    */
   private void transfer(String email, String mailPassword, String walletName, Double mount)
       throws InterruptedException {
-    PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(userInfo,config, walletName);
+    PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(userInfo, config, walletName);
     if (!getTransferPage.isActive()) {
       logger.info("抓取提现页面失败" + getTransferPage.toString());
       //todo 会写失败日志
@@ -135,7 +135,6 @@ public class RequestPayoutJob extends AbstractJob {
           .filterAndUpdateFlag(userInfo.getRow(), "3a", "发送邮件给[" + "" + "]失败");
       return;
     }
-    long mailStartTime = GetNetworkTime.getNetworkDatetime();
     long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 100 + 10000;
     logger.info(
         "休眠" + mailSpace + "ms后读取邮件");
@@ -178,24 +177,15 @@ public class RequestPayoutJob extends AbstractJob {
       if (cancelStr.contains("success")) {
         logger.info("取消已有token成功");
         Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        transfer(email, mailPassword,getTransferPage.getUserAccountId() , transferAmount);
+        transfer(email, mailPassword, getTransferPage.getUserAccountId(), transferAmount);
       } else {
         logger.info("取消已有token失败=" + cancelStr);
       }
     }
     if (transferCode.getStatus().equals("success")) {
-
-      double left = wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount();
-      if (left == 0) {
-        UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "6a", "转账成功");
-        return;
-      } else {
-        logger.info("转账成功，休眠500毫秒执行下一轮转账");
-        Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        logger.info("下一轮转账开始");
-        transfer(email, mailPassword, getTransferPage.getUserAccountId(),
-            (wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount()));
-      }
+      logger.info("提现成功");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "5a", "提现成功");
+      return;
     } else {
       logger.info("转账失败");
       //todo 会写失败日志，记录状态

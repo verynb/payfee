@@ -1,6 +1,5 @@
 package com.transfer.job;
 
-import com.bit.network.GetNetworkTime;
 import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
 import com.transfer.entity.SendMailResult;
@@ -12,7 +11,6 @@ import com.transfer.entity.TransferWallet;
 import com.transfer.entity.UserInfo;
 import com.transfer.job.support.AbstractJob;
 import com.transfer.mailClient.FilterMailUtil;
-import com.transfer.mailClient.ImapMailToken;
 import com.transfer.mailClient.MailTokenData;
 import com.transfer.task.CancelTokenTask;
 import com.transfer.task.GetReceiverTask;
@@ -23,7 +21,6 @@ import com.transfer.task.TransferUtil;
 import command.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import login.task.LoginTask;
 import lombok.Getter;
@@ -85,14 +82,14 @@ public class TransferCrawlJob extends AbstractJob {
     }
     //登录成功
     transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
-        this.userInfo.getTransferTo(), this.userInfo.getTransferAmount());
+        this.userInfo.getTransferTo());
 
   }
 
   /**
    * 执行转账功能
    */
-  private void transfer(String email, String mailPassword, String transferTo, Double transferAmount)
+  private void transfer(String email, String mailPassword, String transferTo)
       throws InterruptedException {
     TransferPageData getTransferPage = TransferPageTask.tryTimes(config);
     if (!getTransferPage.isActive()) {
@@ -112,12 +109,6 @@ public class TransferCrawlJob extends AbstractJob {
       UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0a", "转账金额小于0");
       return;
     }
-    if (!TransferUtil.enough(filterList, transferAmount)) {
-      logger.info("转账总额小于[" + transferAmount + "]");
-      //todo 会写失败日志，记录状态
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1a", "转账总额小于[" + transferAmount + "]");
-      return;
-    }
     TransferWallet wallet = filterList.get(0);
     UserInfo receiverInfo = GetReceiverTask.execute(transferTo);
     if (!receiverInfo.isActive()) {
@@ -130,7 +121,7 @@ public class TransferCrawlJob extends AbstractJob {
     SendMailResult mailResult =
         SendMailTask
             .tryExcute(getTransferPage.getAuthToken(), getTransferPage.getTransferUserId(),
-                RandomUtil.ranNum(config.getThreadspaceTime()) * 1000,FilterMailUtil.TOKEN_TYPE_TRANSFER);
+                RandomUtil.ranNum(config.getThreadspaceTime()) * 1000, FilterMailUtil.TOKEN_TYPE_TRANSFER);
     if (!mailResult.isActive()) {
       logger.info("发送邮件[" + getTransferPage.getTransferUserId() + "]失败");
       //todo 会写失败日志，记录状态
@@ -138,13 +129,14 @@ public class TransferCrawlJob extends AbstractJob {
           .filterAndUpdateFlag(userInfo.getRow(), "3a", "发送邮件给[" + getTransferPage.getTransferUserId() + "]失败");
       return;
     }
-    long mailStartTime = GetNetworkTime.getNetworkDatetime();
     long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 100 + 10000;
     logger.info(
         "休眠" + mailSpace + "ms后读取邮件");
     Thread.sleep(mailSpace);
-    List<MailTokenData> tokenData = tryReceiveMail(email, mailPassword, mailStartTime, mailSpace,
-        config.getTransferErrorTimes());
+    List<MailTokenData> tokenData = FilterMailUtil.filterTransferMails(userInfo.getUserName(),
+        email, mailPassword,
+        config.getTransferErrorTimes(),
+        config.getMailSpaceTime());
     if (CollectionUtils.isEmpty(tokenData)) {
       logger.info("获取邮件信息失败");
       //todo 会写失败日志，记录状态
@@ -152,30 +144,8 @@ public class TransferCrawlJob extends AbstractJob {
       return;
     } else {
       logger.info("邮件解析成功");
-      transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData,
-          transferAmount);
+      transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData);
     }
-  }
-
-  private List<MailTokenData> tryReceiveMail(String email, String mailPassword, long mailStartTime, long mailSpace,
-      int tryTimes)
-      throws InterruptedException {
-    for (int i = 1; i <= tryTimes; i++) {
-      logger.info("开始读取邮件["+email+"]");
-      List<MailTokenData> tokenData = FilterMailUtil
-          .filterTransferMails(userInfo.getUserName(), email, mailPassword);
-      if (CollectionUtils.isEmpty(tokenData)) {
-        long tryMailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 1000 + 10000;
-        logger
-            .info("获取邮件失败,等待" + tryMailSpace + "ms重新获取");
-        Thread.sleep(tryMailSpace);
-        logger
-            .info("重新获取邮件开始剩余重试次数" + (tryTimes - i));
-      } else {
-        return tokenData;
-      }
-    }
-    return null;
   }
 
   private void transferByToken(String email,
@@ -184,11 +154,11 @@ public class TransferCrawlJob extends AbstractJob {
       TransferWallet wallet,
       String transferTo,
       UserInfo receiverInfo,
-      List<MailTokenData> tokenData, Double transferAmount) throws InterruptedException {
+      List<MailTokenData> tokenData) throws InterruptedException {
     TransferParam param = new TransferParam(getTransferPage.getAuthToken(),
         transferTo,
         wallet.getWalletId(),
-        wallet.getAmount() - transferAmount >= 0 ? transferAmount : wallet.getAmount(),
+        wallet.getAmount(),
         tokenData.get(0).getToken(),
         getTransferPage.getTransferUserId(),
         receiverInfo.getUser_id()
@@ -204,25 +174,16 @@ public class TransferCrawlJob extends AbstractJob {
       if (cancelStr.contains("success")) {
         logger.info("取消已有token成功");
         Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        transfer(email, mailPassword, transferTo, transferAmount);
+        transfer(email, mailPassword, transferTo);
       } else {
         logger.info("取消已有token失败=" + cancelStr);
       }
     }
     if (transferCode.getStatus().equals("success")) {
-
-      double left = wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount();
-      if (left == 0) {
-        UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "6a", "转账成功");
-        return;
-      } else {
         logger.info("转账成功，休眠500毫秒执行下一轮转账");
         Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
         logger.info("下一轮转账开始");
-        transfer(email, mailPassword, transferTo,
-            (wallet.getAmount() - transferAmount >= 0 ? 0 : transferAmount - wallet.getAmount()));
-      }
-
+        transfer(email, mailPassword, transferTo);
     } else {
       logger.info("转账失败");
       //todo 会写失败日志，记录状态
