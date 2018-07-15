@@ -2,6 +2,7 @@ package com.transfer.task;
 
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
+import com.bit.network.HostConfig;
 import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class GetReceiverTask {
 
   private static Logger logger = LoggerFactory.getLogger(GetReceiverTask.class);
-  private static String URL = "https://www.bitbackoffice.com/users/is_down_line_binary";
+  private static String URL = HostConfig.HOST+"users/is_down_line_binary";
 
 
   private static Map getParam(String userName) {

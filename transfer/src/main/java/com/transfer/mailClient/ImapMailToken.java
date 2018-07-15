@@ -35,26 +35,31 @@ public class ImapMailToken {
 
   private static final String PROTOCOL = "imap";
   private static final String PORT = "143";
-  //    private static final String HOST = "imap.mxhichina.com";//阿里云企业邮箱
-//  private static final String HOST = "imap.163.com";//163邮箱
-private static final String HOST = "imap.aliyun.com";//阿里云个人邮箱
+  private static final String HOST_ALI = "imap.mxhichina.com";//阿里云企业邮箱
+  private static final String HOST_WANGYI = "imap.163.com";//163邮箱
+  private static final String HOST_ALIYUN = "imap.aliyun.com";//阿里云个人邮箱
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
   private static Store getStore(String mail, String password) throws MessagingException {
+    String host = HOST_ALI;
+    String host_ip = mail.substring(mail.indexOf("@"), mail.length());
+    if (host_ip.contains("163.com")) {
+      host = HOST_WANGYI;
+    }
+    logger.info("HOST[" + host + "]");
     Properties props = new Properties();
     props.setProperty("mail.imap.protocol", PROTOCOL);       // 协议
     props.setProperty("mail.imap.port", PORT);             // 端口
-    props.setProperty("mail.imap.host", HOST);    // imap服务器
+    props.setProperty("mail.imap.host", host);    // imap服务器
     props.put("mail.imap.auth.plain.disable", "true");
-//    props.setProperty("mail.debug", "true");
+    props.setProperty("mail.debug", "true");
     Session session = Session.getInstance(props);
     Store store = session.getStore("imap");
     store.connect(mail, password);
     return store;
   }
 
-
-  public static List<MailTokenData> filterMailsForIsNew(String userName, String mail, String password) {
+  public static List<MailTokenData> filterMailsForIsNew(String userName, String mail, String password, String token) {
     Store store = null;
     IMAPFolder folder = null;
     IMAPFolder rubbishFolder = null;
@@ -72,16 +77,17 @@ private static final String HOST = "imap.aliyun.com";//阿里云个人邮箱
       FlagTerm ft =
           new FlagTerm(new Flags(Flags.Flag.SEEN), false);
       SearchTerm comparisonAndTerm = new AndTerm(comparisonTermeq, ft);
-      List<Message> inboxMessages = new ArrayList<Message>(Arrays.asList(folder.search(comparisonAndTerm)));
+      List<Message> inboxMessages = Lists.newArrayList(Arrays.asList(folder.search(comparisonAndTerm)));
       logger.info("读取收件箱成功");
       logger.info("开始读取垃圾邮件");
-      List<Message> rubbishMessages = new ArrayList<Message>(Arrays.asList(rubbishFolder.search(comparisonAndTerm)));
+      List<Message> rubbishMessages = Lists.newArrayList(Arrays.asList(rubbishFolder.search(comparisonAndTerm)));
       logger.info("读取垃圾成功");
       inboxMessages.addAll(rubbishMessages);
+
       for (int i = 0; i < inboxMessages.size(); i++) {
         ReceiveEmail re = new ReceiveEmail((MimeMessage) inboxMessages.get(i));
         if (StringUtils.isBlank(re.getSubject()) || !re.getSubject()
-            .equals("Token for your TRANSFER")) {
+            .equals(token)) {
           logger.info("NOT Token");
           continue;
         }
@@ -122,15 +128,4 @@ private static final String HOST = "imap.aliyun.com";//阿里云个人邮箱
     }
   }
 
-  public static void main(String[] args) {
-    /*for(int i=0;i<100;i++){
-      new Thread(() ->{
-        ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan001@aliyun.com", "liumeichen123");
-      }).start();
-    }*/
-    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan001@aliyun.com", "liumeichen123"));
-    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan003@aliyun.com", "liumeichen123"));
-    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "foshan002@aliyun.com", "liumeichen123"));
-    System.out.println(ImapMailToken.filterMailsForIsNew("yuanjiang123", "yuanjiangfreedom@aliyun.com", "yuanjiang123"));
-  }
 }

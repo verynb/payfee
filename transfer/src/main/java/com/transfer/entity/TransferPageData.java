@@ -46,7 +46,9 @@ public class TransferPageData {
           return new TransferWallet(walletId, amount);
         }).collect(Collectors.toList());
 
-    Element authTokenElement = doc.select("input[name=authenticity_token]").first();
+    Element authTokenElement = doc.select("form[id=new_partition_transfer_partition]")
+        .select("input[name=authenticity_token]").first();
+
     Element transferUserIdElement = doc.select("input[name=partition_transfer_partition[user_id]]").first();
     this.authToken = authTokenElement.val();
     this.transferUserId = transferUserIdElement.val();

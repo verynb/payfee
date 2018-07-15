@@ -2,6 +2,7 @@ package com.transfer.task;
 
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
+import com.bit.network.HostConfig;
 import com.bit.network.HttpPostResult;
 import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
@@ -17,13 +18,13 @@ import org.slf4j.LoggerFactory;
 public class SendMailTask {
 
   private static Logger logger = LoggerFactory.getLogger(SendMailTask.class);
-  private static String URL = "https://www.bitbackoffice.com/tokens";
+  private static String URL = HostConfig.HOST+"tokens";
 
-  private static Map getParam(String token, String userId) {
+  private static Map getParam(String token, String userId,String type) {
     Map<String, String> paramMap = Maps.newHashMap();
     paramMap.put("authenticity_token", token);
     paramMap.put("token[user_id]", userId);
-    paramMap.put("token[token_type]", "transfer");
+    paramMap.put("token[token_type]", type);
     return paramMap;
   }
 
@@ -34,12 +35,12 @@ public class SendMailTask {
   }
 
 
-  public static SendMailResult tryExcute(String token, String userId, long space) {
+  public static SendMailResult tryExcute(String token, String userId, long space,String type) {
     logger.info("开始发送邮件["+userId+"]");
-    SendMailResult result = execute(token, userId);
+    SendMailResult result = execute(token, userId,type);
     if (result == null || result.getError().equals("number_exceeded")) {
       logger.info("token无效，开始取消token");
-      String cancelStr = CancelTokenTask.execute();
+      String cancelStr = CancelTokenTask.execute(type);
       if (cancelStr.contains("success")) {
         logger.info("取消已有token成功");
         try {
@@ -47,7 +48,7 @@ public class SendMailTask {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        result = tryExcute(token, userId, space);
+        result = tryExcute(token, userId, space,type);
       } else {
         logger.info("取消已有token失败=" + cancelStr);
       }
@@ -55,11 +56,11 @@ public class SendMailTask {
     return result;
   }
 
-  private static SendMailResult execute(String token, String userId) {
+  private static SendMailResult execute(String token, String userId,String type) {
     HttpPostResult response = null;
     try {
       response = HttpUtils
-          .doPost(CrawlMeta.getNewInstance(SendMailTask.class, URL), new CrawlHttpConf(getParam(token, userId),getHeader()));
+          .doPost(CrawlMeta.getNewInstance(SendMailTask.class, URL), new CrawlHttpConf(getParam(token, userId,type),getHeader()));
       String returnStr = EntityUtils.toString(response.getResponse().getEntity());
       logger.info("发送邮件服务器返回值-" + returnStr);
       if (returnStr.contains("number_exceeded")) {

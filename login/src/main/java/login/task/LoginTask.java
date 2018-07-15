@@ -2,6 +2,7 @@ package login.task;
 
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
+import com.bit.network.HostConfig;
 import com.bit.network.HttpPostResult;
 import com.bit.network.HttpUtils;
 import com.bit.network.RandomUtil;
@@ -26,7 +27,7 @@ import support.LoginResult;
 public class LoginTask {
 
   private static Logger logger = LoggerFactory.getLogger(LoginTask.class);
-  private static String URL = "https://www.bitbackoffice.com/auth/login";
+  private static String URL = HostConfig.HOST+"auth/login";
 
   private static Map getParam(String tokenValue, String userName, String password) {
     Map<String, String> param = Maps.newHashMap();
@@ -42,9 +43,6 @@ public class LoginTask {
       CrawlHttpConf conf = new CrawlHttpConf(getParam(tokenValue, userName, password));
       response = HttpUtils
           .doPost(CrawlMeta.getNewInstance(LoginTask.class, URL), conf);
-//      Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
-//      Element element = doc.select("body").first();
-//      String value = element.text();
       if (response.getResponse().getStatusLine().getStatusCode() == 302) {
         logger.info("用户[" + userName + "]登录成功");
         return new LoginResult(200, LoginExceptionConstance.LOGIN_SUCCESS);

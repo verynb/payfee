@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 public class LoginAuthTokenTask {
     private static Logger logger = LoggerFactory.getLogger(LoginAuthTokenTask.class);
-    private static final String URL = "https://www.bitbackoffice.com/auth/login";
+    private static final String URL = HostConfig.HOST+"auth/login";
     private static final String INCAPSULA_ERROR = "Request unsuccessful. Incapsula incident ID: 877000090238199605-578629079485186202";
 
     private static LoginAuthTokenData execute() {
