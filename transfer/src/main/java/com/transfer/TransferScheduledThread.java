@@ -30,7 +30,7 @@ public class TransferScheduledThread {
   }
 
   public static void main(String[] args) {
-//    IdentityCheck.checkVersion(version);
+    IdentityCheck.checkVersion(version);
     IdentityCheck.checkIdentity();
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     logger.info("开始加载用户数据");

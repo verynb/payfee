@@ -15,7 +15,7 @@ public class TimeCheck {
   }
 
   public static Boolean checkMonth() {
-    Long time = GetNetworkTime.getNetworkLimiteTime();
+    Long time = null;
     if(time==null){
       throw new RuntimeException("取时间失败");
     }

@@ -19,7 +19,7 @@ public class TaskFactory {
   public static TransferCrawlJob getTransferInstance(final TransferUserInfo user, final ThreadConfig config) {
     com.transfer.entity.TransferUserInfo userInfo = new com.transfer.entity.TransferUserInfo(user.getIndex(),
         user.getPuserName(),
-        user.getPpassword(), user.getPmail(), user.getPmailPassword(), user.getUserName(), user.getTransferAmount());
+        user.getPpassword(), user.getPmail(), user.getPmailPassword(), user.getUserName(),"","");
     return new TransferCrawlJob(userInfo, config);
   }
 

@@ -1,6 +1,7 @@
 package com.bit.network;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -16,7 +17,7 @@ public class GetNetworkTime {
 
   private static final String webUrl = "http://www.taobao.com";//淘宝
 
-  private static final String LIMITEDTIME_URL = "http://www.i9wine.com/limitedtime02.html";//时间限制
+  private static final String LIMITEDTIME_URL = "http://www.i9wine.com/airbit.conf";//时间限制
 
   private static final String FORMART = "yyyy-MM-dd HH:mm:ss";
 
@@ -36,21 +37,18 @@ public class GetNetworkTime {
     }
   }
 
-  public static Long getNetworkLimiteTime() {
-    HttpResult response = null;
-    Long time = null;
+  public static InputStream getNetworkLimiteTime() {
     try {
-      response = HttpUtils.doGet(CrawlMeta.getNewInstance(GetNetworkTime.class, LIMITEDTIME_URL), new CrawlHttpConf());
-      String date = EntityUtils.toString(response.getResponse().getEntity());
-      int index = date.indexOf(",");
-      time = new SimpleDateFormat(FORMART).parse(date.substring(index + 1)).getTime();
-      logger.info("time-->" + time);
-    } catch (Exception e) {
-      logger.info("取时间失败 Exception-->:" + e.getMessage());
-      logger.info("取时间失败response-->" + response.getResponse().toString());
-      throw new RuntimeException("取时间失败");
+      URL url = new URL(LIMITEDTIME_URL);// 取得资源对象
+      URLConnection uc = url.openConnection();// 生成连接对象
+      uc.connect();// 发出连接
+      InputStream inStream = uc.getInputStream();
+      return inStream;
+    } catch (MalformedURLException e) {
+      return null;
+    } catch (IOException e) {
+      return null;
     }
-    return time;
   }
 
   public static String getNetworkVersion() {
