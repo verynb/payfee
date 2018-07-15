@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import sun.dc.pr.PRError;
 
 /**
  * Created by Administrator on 2017/11/27.
@@ -19,6 +20,7 @@ import org.jsoup.nodes.Element;
 @Setter
 public class PayOutPageData {
 
+  private String addBitToken = "";
   private String authToken = "";
   private String userAccountId = "";
   private List<PayOutWallet> payOutWallets = Lists.newArrayList();
@@ -58,6 +60,11 @@ public class PayOutPageData {
 
     Element authTokenElement = doc.select("form[id=new_partition_cashout_partition]")
         .select("input[name=authenticity_token]").first();
+
+    Element addBitElement = doc.select("form[id=new_user_account]")
+        .select("input[name=authenticity_token]").first();
+
+    this.addBitToken = addBitElement.val();
     this.authToken = authTokenElement.val();
     this.userAccountId = amountId;
     this.payOutWallets = payOutWallets;

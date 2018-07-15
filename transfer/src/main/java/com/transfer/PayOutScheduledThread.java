@@ -2,7 +2,9 @@ package com.transfer;
 
 import com.bit.network.RandomUtil;
 import com.google.common.collect.Lists;
+import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.TransferUserInfo;
+import com.transfer.job.RequestPayoutJob;
 import com.transfer.job.TransferCrawlJob;
 import config.ThreadConfig;
 import identity.IdentityCheck;
@@ -17,9 +19,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Administrator on 2017/12/2.
  */
-public class TransferScheduledThread {
+public class PayOutScheduledThread {
 
-  private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
+  private static Logger logger = LoggerFactory.getLogger(PayOutScheduledThread.class);
 
   private static String version="1.3";
 
@@ -34,18 +36,17 @@ public class TransferScheduledThread {
     IdentityCheck.checkIdentity();
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     logger.info("开始加载用户数据");
-    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo(1,
+    List<PayOutUserInfo> userInfos = Lists.newArrayList(new PayOutUserInfo(1,
         "hm7zdz01",
         "sdjilu1225",
         "sxhmmen02@hmpeony.com",
         "Night0128kkn",
         "whka014",
-        20D));
-//    ThreadConfig config = LoadProperties.loadConfigProperties("./config.properties");
-
+        "",
+        "",""));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < userInfos.size(); i++) {
-      scheduledThreadPool.schedule(new TransferCrawlJob(userInfos.get(i), config),
+      scheduledThreadPool.schedule(new RequestPayoutJob(userInfos.get(i), config),
           5, TimeUnit.SECONDS);
       try {
         int space = RandomUtil.ranNum(config.getThreadspaceTime() * 1000 + 5000);

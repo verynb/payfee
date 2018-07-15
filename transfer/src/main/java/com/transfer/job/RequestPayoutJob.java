@@ -6,6 +6,7 @@ import com.bit.network.SessionHolder;
 import com.transfer.entity.PayOutPageData;
 import com.transfer.entity.PayOutParam;
 import com.transfer.entity.PayOutResult;
+import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.PayOutWallet;
 import com.transfer.entity.SendMailResult;
 import com.transfer.entity.TransferPageData;
@@ -46,11 +47,11 @@ import support.LoginResult;
 public class RequestPayoutJob extends AbstractJob {
 
   private static Logger logger = LoggerFactory.getLogger(RequestPayoutJob.class);
-  private TransferUserInfo userInfo;
+  private PayOutUserInfo userInfo;
   //发邮件与收邮件时间间隔，默认10s
   private ThreadConfig config;
 
-  public RequestPayoutJob(TransferUserInfo userInfo,
+  public RequestPayoutJob(PayOutUserInfo userInfo,
       ThreadConfig config) {
     this.userInfo = userInfo;
     this.config = config;
@@ -79,8 +80,8 @@ public class RequestPayoutJob extends AbstractJob {
   public void doFetchPage() throws Exception {
     LoginResult loginResult = LoginTask.tryTimes(config.getTransferErrorTimes(),
         config.getThreadspaceTime(),
-        this.userInfo.getUserName(),
-        this.userInfo.getPassword());
+        this.userInfo.getAccount(),
+        this.userInfo.getAccountPassword());
     if (!loginResult.isActive()) {
       logger.info("用户[" + this.userInfo + "]登录失败");
       UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-2a", "用户[" + this.userInfo + "]登录失败");
@@ -88,38 +89,38 @@ public class RequestPayoutJob extends AbstractJob {
       return;
     }
     //登录成功
-    transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
-        this.userInfo.getTransferTo(), this.userInfo.getTransferAmount());
+    transfer(this.userInfo.getMailbox(), this.userInfo.getMailboxPassword(),
+        this.userInfo.getWalletName(), 200D);
 
   }
 
   /**
    * 执行体现功能
    */
-  private void transfer(String email, String mailPassword, String accountName, Double mount)
+  private void transfer(String email, String mailPassword, String walletName, Double mount)
       throws InterruptedException {
-    PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(config, accountName);
+    PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(userInfo,config, walletName);
     if (!getTransferPage.isActive()) {
-      logger.info("抓取转账页面失败" + getTransferPage.toString());
+      logger.info("抓取提现页面失败" + getTransferPage.toString());
       //todo 会写失败日志
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-1a", "抓取转账页面失败");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-1a", "抓取提现页面失败");
       return;
     }
-    logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
+    logger.info("抓取提现页面数据成功[" + getTransferPage.toString() + "]");
     List<PayOutWallet> filterList = getTransferPage.getPayOutWallets()
         .stream()
         .filter(t -> t.getAmount() > 0)
         .collect(Collectors.toList());
     if (CollectionUtils.isEmpty(filterList)) {
-      logger.info("转账金额没有大于0的数据[" + getTransferPage.toString() + "]");
+      logger.info("提现金额没有大于0的数据[" + getTransferPage.toString() + "]");
       //todo 会写失败日志
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0a", "转账金额小于0");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0a", "提现金额小于0");
       return;
     }
     if (!TransferUtil.enoughPayOut(filterList, mount)) {
-      logger.info("转账总额小于[" + mount + "]");
+      logger.info("提现总额小于[" + mount + "]");
       //todo 会写失败日志，记录状态
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1a", "转账总额小于[" + mount + "]");
+      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1a", "提现总额小于[" + mount + "]");
       return;
     }
     PayOutWallet wallet = filterList.get(0);
@@ -139,8 +140,9 @@ public class RequestPayoutJob extends AbstractJob {
     logger.info(
         "休眠" + mailSpace + "ms后读取邮件");
     Thread.sleep(mailSpace);
-    List<MailTokenData> tokenData = tryReceiveMail(email, mailPassword, mailStartTime, mailSpace,
-        config.getTransferErrorTimes());
+    List<MailTokenData> tokenData = FilterMailUtil.filterRequestMails(userInfo.getAccount(),
+        email, mailPassword, config.getTransferErrorTimes(),
+        config.getMailSpaceTime());
     if (CollectionUtils.isEmpty(tokenData)) {
       logger.info("获取邮件信息失败");
       //todo 会写失败日志，记录状态
@@ -152,26 +154,6 @@ public class RequestPayoutJob extends AbstractJob {
     }
   }
 
-  private List<MailTokenData> tryReceiveMail(String email, String mailPassword, long mailStartTime, long mailSpace,
-      int tryTimes)
-      throws InterruptedException {
-    for (int i = 1; i <= tryTimes; i++) {
-      logger.info("开始读取邮件[" + email + "]");
-      List<MailTokenData> tokenData = FilterMailUtil
-          .filterRequestMails(userInfo.getUserName(), email, mailPassword);
-      if (CollectionUtils.isEmpty(tokenData)) {
-        long tryMailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 1000 + 10000;
-        logger
-            .info("获取邮件失败,等待" + tryMailSpace + "ms重新获取");
-        Thread.sleep(tryMailSpace);
-        logger
-            .info("重新获取邮件开始剩余重试次数" + (tryTimes - i));
-      } else {
-        return tokenData;
-      }
-    }
-    return null;
-  }
 
   private void transferByToken(String email,
       String mailPassword,
@@ -185,8 +167,8 @@ public class RequestPayoutJob extends AbstractJob {
         wallet.getAmount() - transferAmount >= 0 ? transferAmount : wallet.getAmount(),
         tokenData.get(0).getToken()
     );
-    logger.info("开始转账");
-    logger.info("转账参数=" + param.toString());
+    logger.info("开始提现");
+    logger.info("提现参数=" + param.toString());
     PayOutResult transferCode = PayOutTask.execute(param);
     if (transferCode.getError().equals("invalid_token")) {
       tokenData.remove(0);
