@@ -1,5 +1,3 @@
-import com.bit.network.GetNetworkTime;
-import java.io.File;
 import java.io.FileInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

@@ -7,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.RenewalIdConstance;
-import support.RenewalParam;
+import com.mail.support.RenewalIdConstance;
+import com.mail.support.RenewalParam;
 
 import java.util.Map;
 
-import static support.RenewalIdConstance.*;
+import static com.mail.support.RenewalIdConstance.*;
 
 /**
  * Created by yuanj on 2017/11/27.

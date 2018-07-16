@@ -1,4 +1,4 @@
-package support;
+package com.mail.support;
 
 public class LoginExceptionConstance {
     public static final String LOGIN_TOKEN_ISNULL = "登陆token为空";//code=401

@@ -1,9 +1,8 @@
-import command.api.UserInfoFilterUtil;
+import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import identity.IdentityCheck;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -13,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import command.api.TransferUserInfo;
+import com.mail.api.TransferUserInfo;
 
 /**
  * Created by Administrator on 2017/12/2.

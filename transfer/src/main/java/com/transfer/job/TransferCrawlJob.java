@@ -17,8 +17,7 @@ import com.transfer.task.GetReceiverTask;
 import com.transfer.task.SendMailTask;
 import com.transfer.task.TransferPageTask;
 import com.transfer.task.TransferTask;
-import com.transfer.task.TransferUtil;
-import command.api.UserInfoFilterUtil;
+import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +27,7 @@ import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.LoginResult;
+import com.mail.support.LoginResult;
 
 /**
  * <p>

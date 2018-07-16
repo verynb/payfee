@@ -1,14 +1,10 @@
-package com.transfer.mailClient;
+package com.mail.api;
 
 import com.google.common.collect.Lists;
-import java.io.UnsupportedEncodingException;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import javax.mail.Flags;
-import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -16,16 +12,8 @@ import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
-import javax.mail.search.AndTerm;
-import javax.mail.search.ComparisonTerm;
-import javax.mail.search.FlagTerm;
-import javax.mail.search.ReceivedDateTerm;
-import javax.mail.search.SearchTerm;
-import javax.mail.search.SentDateTerm;
-import javax.mail.search.SubjectTerm;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 
 /**
  * Created by Administrator on 2017/11/30.
@@ -49,21 +37,6 @@ public class MailToken {
     return store;
   }
 
-  private static SearchTerm buildSearchTerm() throws UnsupportedEncodingException {
-
-    DateTime dateTime=new DateTime(1531238140000L);
-
-    SearchTerm sentDateTerm = new ReceivedDateTerm(ComparisonTerm.NE, new Date(dateTime.millisOfDay().withMinimumValue().getMillis()));
-    SearchTerm sentDateTermEnd = new ReceivedDateTerm(ComparisonTerm.LT, new Date(1531238140000L));
-    SearchTerm ft =
-        new FlagTerm(new Flags(Flag.SEEN), false);
-    SearchTerm subject = new SubjectTerm("Token for your TRANSFER");
-    SearchTerm[] searchTerms = new SearchTerm[]{
-        subject, ft,sentDateTerm
-    };
-    SearchTerm comparisonAndTerm = new AndTerm(searchTerms);
-    return comparisonAndTerm;
-  }
 
   public static List<MailTokenData> filterMails(String mail, String password) {
     Store store = null;
@@ -73,13 +46,9 @@ public class MailToken {
       store = getStore(mail, password);
       folder = store.getFolder("INBOX");
       folder.open(Folder.READ_ONLY);
-      Message message[] = folder.search(buildSearchTerm());
+      Message message[] = folder.getMessages();
       for (int i = 0; i < message.length; i++) {
         ReceiveEmail re = new ReceiveEmail((MimeMessage) message[i]);
-        if (StringUtils.isBlank(re.getSubject()) || !re.getSubject()
-            .equals("Token for your TRANSFER")) {
-          continue;
-        }
         re.getMailContent((Part) message[i]);
         dataList.add(new MailTokenData(re.getToken(), re.getSentDate()));
       }
@@ -111,7 +80,6 @@ public class MailToken {
       return false;
     }
   }
-
   public static void main(String[] args) {
     System.out.println(MailToken.filterMails("foshan001@aliyun.com", "liumeichen123"));
   }

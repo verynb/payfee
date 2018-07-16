@@ -1,4 +1,4 @@
-package command.api;
+package com.mail.api;
 
 import java.util.List;
 import java.util.Optional;

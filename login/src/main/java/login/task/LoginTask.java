@@ -10,15 +10,11 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.LoginAuthTokenData;
-import support.LoginExceptionConstance;
-import support.LoginResult;
+import com.mail.support.LoginAuthTokenData;
+import com.mail.support.LoginExceptionConstance;
+import com.mail.support.LoginResult;
 
 /**
  * Created by yuanj on 2017/11/27.

@@ -1,6 +1,6 @@
 import com.transfer.job.TransferCrawlJob;
 import config.ThreadConfig;
-import command.api.TransferUserInfo;
+import com.mail.api.TransferUserInfo;
 
 /**
  * Created by yuanj on 2018/6/13.

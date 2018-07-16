@@ -8,12 +8,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.LoginSuccessResult;
-import support.RenewalAmount;
-import support.RenewalParam;
+import com.mail.support.LoginSuccessResult;
 
 import login.task.LoginAuthTokenTask;
-import login.task.LoginTask;
 
 /**
  * Created by yuanj on 2017/11/27.

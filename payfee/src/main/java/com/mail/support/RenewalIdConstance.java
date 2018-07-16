@@ -1,4 +1,4 @@
-package support;
+package com.mail.support;
 
 public class RenewalIdConstance {
     public static final String AUTHENTICITYTOKEN = "authenticity_token";

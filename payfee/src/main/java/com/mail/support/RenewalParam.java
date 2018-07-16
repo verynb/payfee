@@ -1,4 +1,4 @@
-package support;
+package com.mail.support;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

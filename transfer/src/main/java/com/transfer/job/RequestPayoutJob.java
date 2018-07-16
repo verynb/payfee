@@ -1,6 +1,5 @@
 package com.transfer.job;
 
-import com.bit.network.GetNetworkTime;
 import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
 import com.transfer.entity.PayOutPageData;
@@ -9,24 +8,15 @@ import com.transfer.entity.PayOutResult;
 import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.PayOutWallet;
 import com.transfer.entity.SendMailResult;
-import com.transfer.entity.TransferPageData;
-import com.transfer.entity.TransferParam;
-import com.transfer.entity.TransferResult;
-import com.transfer.entity.TransferUserInfo;
-import com.transfer.entity.TransferWallet;
-import com.transfer.entity.UserInfo;
 import com.transfer.job.support.AbstractJob;
 import com.transfer.mailClient.FilterMailUtil;
 import com.transfer.mailClient.MailTokenData;
 import com.transfer.task.CancelTokenTask;
-import com.transfer.task.GetReceiverTask;
 import com.transfer.task.PayOutTask;
 import com.transfer.task.RequestPayoutPageTask;
 import com.transfer.task.SendMailTask;
-import com.transfer.task.TransferPageTask;
-import com.transfer.task.TransferTask;
 import com.transfer.task.TransferUtil;
-import command.api.UserInfoFilterUtil;
+import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +26,7 @@ import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.LoginResult;
+import com.mail.support.LoginResult;
 
 /**
  * <p>

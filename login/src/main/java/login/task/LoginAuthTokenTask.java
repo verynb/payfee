@@ -7,7 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import support.LoginAuthTokenData;
+import com.mail.support.LoginAuthTokenData;
 
 import java.util.Objects;
 

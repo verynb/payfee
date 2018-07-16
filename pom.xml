@@ -12,6 +12,7 @@
     <module>util</module>
     <module>login</module>
     <module>transfer</module>
+    <module>mail</module>
   </modules>
 
   <properties>
