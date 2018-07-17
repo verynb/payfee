@@ -2,6 +2,8 @@ package com.transfer.job;
 
 import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
+import com.mail.api.MailTokenData;
+import com.mail.support.FilterMailUtil;
 import com.transfer.entity.SendMailResult;
 import com.transfer.entity.TransferPageData;
 import com.transfer.entity.TransferParam;
@@ -10,15 +12,13 @@ import com.transfer.entity.TransferUserInfo;
 import com.transfer.entity.TransferWallet;
 import com.transfer.entity.UserInfo;
 import com.transfer.job.support.AbstractJob;
-import com.transfer.mailClient.FilterMailUtil;
-import com.transfer.mailClient.MailTokenData;
 import com.transfer.task.CancelTokenTask;
 import com.transfer.task.GetReceiverTask;
-import com.transfer.task.SendMailTask;
 import com.transfer.task.TransferPageTask;
 import com.transfer.task.TransferTask;
 import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import login.task.LoginTask;
@@ -89,7 +89,7 @@ public class TransferCrawlJob extends AbstractJob {
    * 执行转账功能
    */
   private void transfer(String email, String mailPassword, String transferTo)
-      throws InterruptedException {
+      throws InterruptedException, UnsupportedEncodingException {
     TransferPageData getTransferPage = TransferPageTask.tryTimes(config);
     if (!getTransferPage.isActive()) {
       logger.info("抓取转账页面失败" + getTransferPage.toString());
@@ -116,26 +116,13 @@ public class TransferCrawlJob extends AbstractJob {
       UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "2a", "获取转出账户[" + transferTo + "]失败");
       return;
     }
-    logger.info("获取转出账户[" + transferTo + "]成功");
-    SendMailResult mailResult =
-        SendMailTask
-            .tryExcute(getTransferPage.getAuthToken(), getTransferPage.getTransferUserId(),
-                RandomUtil.ranNum(config.getThreadspaceTime()) * 1000, FilterMailUtil.TOKEN_TYPE_TRANSFER);
-    if (!mailResult.isActive()) {
-      logger.info("发送邮件[" + getTransferPage.getTransferUserId() + "]失败");
-      //todo 会写失败日志，记录状态
-      UserInfoFilterUtil
-          .filterAndUpdateFlag(userInfo.getRow(), "3a", "发送邮件给[" + getTransferPage.getTransferUserId() + "]失败");
-      return;
-    }
-    long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 100 + 10000;
-    logger.info(
-        "休眠" + mailSpace + "ms后读取邮件");
-    Thread.sleep(mailSpace);
-    List<MailTokenData> tokenData = FilterMailUtil.filterTransferMails(userInfo.getUserName(),
-        email, mailPassword,
-        config.getTransferErrorTimes(),
-        config.getMailSpaceTime());
+    List<MailTokenData> tokenData = FilterMailUtil
+        .filterTransferMails(getTransferPage.getAuthToken(),
+            getTransferPage.getTransferUserId(),
+            userInfo.getUserName(),
+            email, mailPassword,
+            config.getTransferErrorTimes(),
+            config.getMailSpaceTime());
     if (CollectionUtils.isEmpty(tokenData)) {
       logger.info("获取邮件信息失败");
       //todo 会写失败日志，记录状态
@@ -153,7 +140,7 @@ public class TransferCrawlJob extends AbstractJob {
       TransferWallet wallet,
       String transferTo,
       UserInfo receiverInfo,
-      List<MailTokenData> tokenData) throws InterruptedException {
+      List<MailTokenData> tokenData) throws InterruptedException, UnsupportedEncodingException {
     TransferParam param = new TransferParam(getTransferPage.getAuthToken(),
         transferTo,
         wallet.getWalletId(),
@@ -179,10 +166,10 @@ public class TransferCrawlJob extends AbstractJob {
       }
     }
     if (transferCode.getStatus().equals("success")) {
-        logger.info("转账成功，休眠500毫秒执行下一轮转账");
-        Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        logger.info("下一轮转账开始");
-        transfer(email, mailPassword, transferTo);
+      logger.info("转账成功，休眠500毫秒执行下一轮转账");
+      Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
+      logger.info("下一轮转账开始");
+      transfer(email, mailPassword, transferTo);
     } else {
       logger.info("转账失败");
       //todo 会写失败日志，记录状态

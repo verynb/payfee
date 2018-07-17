@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.mail.api.ImapStoreFactory;
 import com.mail.api.MailTokenData;
 import com.mail.api.ReceiveEmail;
-import com.sun.mail.imap.IMAPFolder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -28,23 +27,18 @@ public class ImapMailToken {
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
   public static List<MailTokenData> filterMailsForIsNew(String userName, String mail,
-      String password, SearchTerm searchTerm, String subject) {
+      String password, SearchTerm searchTerm) {
     Store store = ImapStoreFactory.getStore(mail);
-    IMAPFolder folder = null;
-    IMAPFolder rubbishFolder = null;
+    Folder folder = null;
     List<MailTokenData> dataList = Lists.newArrayList();
     try {
       store.connect(mail, password);
-      rubbishFolder = (IMAPFolder) store.getFolder("垃圾邮件");
-      folder = (IMAPFolder) store.getFolder("INBOX");
-      rubbishFolder.open(Folder.READ_WRITE);
+      folder = store.getFolder("INBOX");
       folder.open(Folder.READ_WRITE);
       List<Message> inboxMessages = Lists.newArrayList(Arrays.asList(folder.search(searchTerm)));
-      List<Message> rubbishMessages = Lists.newArrayList(Arrays.asList(rubbishFolder.search(searchTerm)));
-      inboxMessages.addAll(rubbishMessages);
       dataList = inboxMessages.stream()
           .map(i -> new ReceiveEmail((MimeMessage) i))
-          .filter(re -> re.filterSubject(subject))
+          .filter(re -> re.filterSendUser(userName))
           .map(re -> new MailTokenData(re.getToken(), re.getSentDate()))
           .sorted(Comparator.comparing(MailTokenData::getDate).reversed())
           .collect(Collectors.toList());

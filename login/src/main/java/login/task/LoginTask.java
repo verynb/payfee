@@ -73,7 +73,7 @@ public class LoginTask {
       logger.info("登录token为空");
       return new LoginResult(401, LoginExceptionConstance.LOGIN_TOKEN_ISNULL);
     }
-    Thread.sleep(RandomUtil.ranNum(1000));
+//    Thread.sleep(RandomUtil.ranNum(1000));
     for (int i = 1; i <= tryTime + 2; i++) {
       LoginResult loginResult = execute(data.getResult(), userName, password);
       logger.info(loginResult.toString());

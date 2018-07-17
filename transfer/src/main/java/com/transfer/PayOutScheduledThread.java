@@ -33,14 +33,14 @@ public class PayOutScheduledThread {
 
   public static void main(String[] args) {
 //    IdentityCheck.checkVersion(version);
-    IdentityCheck.checkIdentity();
+//    IdentityCheck.checkIdentity();
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     logger.info("开始加载用户数据");
     List<PayOutUserInfo> userInfos = Lists.newArrayList(new PayOutUserInfo(1,
-        "hm7zdz01",
-        "sdjilu1225",
-        "sxhmmen02@hmpeony.com",
-        "Night0128kkn",
+        "lhha003",
+        "hh8389lhhl",
+        "lianghuihua01@bookbitbtc.com",
+        "SHENzen007v",
         "whka014",
         "",
         "",""));

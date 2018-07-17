@@ -14,27 +14,16 @@ public class ReceiveEmail {
 
   private MimeMessage mimeMessage = null;
   private StringBuffer bodyText = new StringBuffer(); // 存放邮件内容的StringBuffer对象
+  private String replaceBodyTex = "";
 
   public ReceiveEmail(MimeMessage mimeMessage) {
     this.mimeMessage = mimeMessage;
     try {
       this.getMailContent(this.mimeMessage);
+      replaceBodyTex = replaceBlank(this.bodyText.toString());
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
-
-  public Boolean filterSubject(String suBject) {
-    String subject = "";
-    try {
-      subject = MimeUtility.decodeText(mimeMessage.getSubject());
-      if (subject == null) {
-        subject = "";
-      }
-    } catch (Exception exce) {
-      exce.printStackTrace();
-    }
-    return subject.equals(suBject);
   }
 
   public Long getSentDate() {
@@ -48,15 +37,14 @@ public class ReceiveEmail {
   }
 
   public String getToken() {
-    String str = replaceBlank(bodyText.toString());
-    String token = str.substring(str.lastIndexOf("*") + 1, str.lastIndexOf("*") + 33);
+    String token = replaceBodyTex.substring(replaceBodyTex.lastIndexOf("*") + 1, replaceBodyTex.lastIndexOf("*") + 33);
     System.out.println("token[" + token + "]");
     return token;
   }
 
-  public String getSendUser(int endIndex) {
-    String str = replaceBlank(bodyText.toString());
-    return str.substring(36, 36 + endIndex);
+  public Boolean filterSendUser(String userName) {
+    int start = replaceBodyTex.indexOf("**Dear")+6;
+    return replaceBodyTex.substring(start, start + userName.length()).equals(userName);
   }
 
   public void getMailContent(Part part) throws Exception {
@@ -83,16 +71,6 @@ public class ReceiveEmail {
     }
   }
 
-
-  public boolean isNew() throws MessagingException {
-    Flags flags = mimeMessage.getFlags();
-    return !flags.contains(Flags.Flag.SEEN);
-  }
-
-  public void delete() throws MessagingException {
-    mimeMessage.setFlag(Flags.Flag.DELETED, true);
-  }
-
   public String replaceBlank(String str) {
     String dest = "";
     if (str != null) {
@@ -101,13 +79,5 @@ public class ReceiveEmail {
       dest = m.replaceAll("");
     }
     return dest;
-  }
-
-  public MimeMessage getMimeMessage() {
-    return mimeMessage;
-  }
-
-  public void setMimeMessage(MimeMessage mimeMessage) {
-    this.mimeMessage = mimeMessage;
   }
 }

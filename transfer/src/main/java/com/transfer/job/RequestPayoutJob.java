@@ -2,22 +2,22 @@ package com.transfer.job;
 
 import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
+import com.mail.api.MailTokenData;
+import com.mail.api.UserInfoFilterUtil;
+import com.mail.support.FilterMailUtil;
+import com.mail.support.LoginResult;
 import com.transfer.entity.PayOutPageData;
 import com.transfer.entity.PayOutParam;
 import com.transfer.entity.PayOutResult;
 import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.PayOutWallet;
-import com.transfer.entity.SendMailResult;
 import com.transfer.job.support.AbstractJob;
-import com.transfer.mailClient.FilterMailUtil;
-import com.transfer.mailClient.MailTokenData;
 import com.transfer.task.CancelTokenTask;
 import com.transfer.task.PayOutTask;
 import com.transfer.task.RequestPayoutPageTask;
-import com.transfer.task.SendMailTask;
 import com.transfer.task.TransferUtil;
-import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import login.task.LoginTask;
@@ -26,7 +26,6 @@ import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mail.support.LoginResult;
 
 /**
  * <p>
@@ -88,7 +87,7 @@ public class RequestPayoutJob extends AbstractJob {
    * 执行体现功能
    */
   private void transfer(String email, String mailPassword, String walletName, Double mount)
-      throws InterruptedException {
+      throws InterruptedException, UnsupportedEncodingException {
     PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(userInfo, config, walletName);
     if (!getTransferPage.isActive()) {
       logger.info("抓取提现页面失败" + getTransferPage.toString());
@@ -114,24 +113,10 @@ public class RequestPayoutJob extends AbstractJob {
       return;
     }
     PayOutWallet wallet = filterList.get(0);
-    SendMailResult mailResult =
-        SendMailTask
-            .tryExcute(getTransferPage.getAuthToken(), "",
-                RandomUtil.ranNum(config.getThreadspaceTime()) * 1000, FilterMailUtil.TOKEN_TYPE_REQUEST_PAYOUT);
-    if (!mailResult.isActive()) {
-      logger.info("发送邮件[" + "" + "]失败");
-      //todo 会写失败日志，记录状态
-      UserInfoFilterUtil
-          .filterAndUpdateFlag(userInfo.getRow(), "3a", "发送邮件给[" + "" + "]失败");
-      return;
-    }
-    long mailSpace = RandomUtil.ranNum(config.getMailSpaceTime()) * 100 + 10000;
-    logger.info(
-        "休眠" + mailSpace + "ms后读取邮件");
-    Thread.sleep(mailSpace);
-    List<MailTokenData> tokenData = FilterMailUtil.filterRequestMails(userInfo.getAccount(),
-        email, mailPassword, config.getTransferErrorTimes(),
-        config.getMailSpaceTime());
+    List<MailTokenData> tokenData = FilterMailUtil
+        .filterRequestMails(getTransferPage.getAuthToken(), "", userInfo.getAccount(),
+            email, mailPassword, config.getTransferErrorTimes(),
+            config.getMailSpaceTime());
     if (CollectionUtils.isEmpty(tokenData)) {
       logger.info("获取邮件信息失败");
       //todo 会写失败日志，记录状态
@@ -149,7 +134,7 @@ public class RequestPayoutJob extends AbstractJob {
       PayOutPageData getTransferPage,
       PayOutWallet wallet,
       List<MailTokenData> tokenData,
-      Double transferAmount) throws InterruptedException {
+      Double transferAmount) throws InterruptedException, UnsupportedEncodingException {
     PayOutParam param = new PayOutParam(getTransferPage.getAuthToken(),
         getTransferPage.getUserAccountId(),
         wallet.getWalletId(),

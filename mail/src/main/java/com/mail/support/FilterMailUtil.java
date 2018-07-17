@@ -1,7 +1,11 @@
 package com.mail.support;
 
+import com.bit.network.GetNetworkTime;
 import com.bit.network.RandomUtil;
+import com.google.common.collect.Lists;
 import com.mail.api.MailTokenData;
+import com.mail.api.SendMailResult;
+import com.mail.task.SendMailTask;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
@@ -12,6 +16,7 @@ import javax.mail.search.ComparisonTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.SearchTerm;
 import javax.mail.search.SentDateTerm;
+import javax.mail.search.SubjectTerm;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,78 +34,107 @@ public class FilterMailUtil {
   private static final String TOKEN_REQUEST_PAYOUT = "Token for your REQUEST PAYOUT";//体现
   private static final String TOKEN_ADD_BITCOIN_ACCOUNT = "Token for your ADD BITCOIN ACCOUNT";//加比特币账户
 
-  private static SearchTerm buildSearchTerm() throws UnsupportedEncodingException {
+  private static SearchTerm buildSearchTerm(Long startTimeMills, Long end, String tokenType)
+      throws UnsupportedEncodingException {
 
-    SearchTerm sentDateTerm = new SentDateTerm(ComparisonTerm.EQ, new Date(1531738540000L));
+    SearchTerm sentDateStrat = new SentDateTerm(ComparisonTerm.GE, new Date(startTimeMills));
+//    SearchTerm sentDateEnd = new SentDateTerm(ComparisonTerm.LE, new Date(end));
     SearchTerm ft =
         new FlagTerm(new Flags(Flag.SEEN), false);
-
+    SearchTerm subject = new SubjectTerm(tokenType);
     SearchTerm[] searchTerms = new SearchTerm[]{
-        sentDateTerm, ft
+        sentDateStrat, ft, subject
     };
     SearchTerm comparisonAndTerm = new AndTerm(searchTerms);
     return comparisonAndTerm;
   }
 
-  public static List<MailTokenData> filterTransferMails(String userName, String mail,
-      String password, int tryTimes,
-      int space) throws InterruptedException, UnsupportedEncodingException {
+  public static List<MailTokenData> filterTransferMails(String sendMailToken, String userId,
+      String userName, String mail, String password,
+      int tryTimes, int space)
+      throws InterruptedException, UnsupportedEncodingException {
+
+    Long startMills = GetNetworkTime.getNetworkDatetime() - 2000*60;//发送时间向前推5s
+    SendMailResult sendMailResult = SendMailTask.tryExcute(sendMailToken, userId, space, TOKEN_TYPE_TRANSFER);
+    if (!sendMailResult.isActive()) {
+      return Lists.newArrayList();
+    }
+
+    Long endMills = 2000*60L;
     for (int i = 1; i <= tryTimes; i++) {
+
+      long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+      logger.info("等待" + tryMailSpace + "ms读取邮件");
+      Thread.sleep(tryMailSpace);
+      endMills = +tryMailSpace;
       logger.info("开始读取邮件[" + mail + "]");
       List<MailTokenData> tokenData = ImapMailToken
-          .filterMailsForIsNew(userName, mail, password, buildSearchTerm(), TOKEN_TRANSFER);
-      if (CollectionUtils.isEmpty(tokenData)) {
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
-        logger
-            .info("获取邮件失败,等待" + tryMailSpace + "ms重新获取");
-        Thread.sleep(tryMailSpace);
-        logger
-            .info("重新获取邮件开始剩余重试次数" + (tryTimes - i));
-      } else {
+          .filterMailsForIsNew(userName, mail, password, buildSearchTerm(startMills, endMills, TOKEN_TRANSFER));
+      if (CollectionUtils.isNotEmpty(tokenData)) {
         return tokenData;
+      } else {
+        logger
+            .info("读取邮件失败,开始重新读取剩余重试次数" + (tryTimes - i));
       }
     }
     return null;
   }
 
-  public static List<MailTokenData> filterRequestMails(String userName, String mail,
+  public static List<MailTokenData> filterRequestMails(String sendMailToken, String userId,
+      String userName, String mail,
       String password, int tryTimes, int space)
       throws InterruptedException, UnsupportedEncodingException {
+    Long startMills = GetNetworkTime.getNetworkDatetime() - 5000;//发送时间向前推5s
+    SendMailResult sendMailResult = SendMailTask.tryExcute(sendMailToken, userId, space, TOKEN_TYPE_REQUEST_PAYOUT);
+    if (!sendMailResult.isActive()) {
+      return Lists.newArrayList();
+    }
+    Long endMills = 0L;
     for (int i = 1; i <= tryTimes; i++) {
+
+      long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+      logger.info("等待" + tryMailSpace + "ms读取邮件");
+      Thread.sleep(tryMailSpace);
+      endMills = +tryMailSpace;
       logger.info("开始读取邮件[" + mail + "]");
       List<MailTokenData> tokenData = ImapMailToken
-          .filterMailsForIsNew(userName, mail, password, buildSearchTerm(), TOKEN_REQUEST_PAYOUT);
-      if (CollectionUtils.isEmpty(tokenData)) {
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
-        logger
-            .info("获取邮件失败,等待" + tryMailSpace + "ms重新获取");
-        Thread.sleep(tryMailSpace);
-        logger
-            .info("重新获取邮件开始剩余重试次数" + (tryTimes - i));
-      } else {
+          .filterMailsForIsNew(userName, mail, password, buildSearchTerm(startMills, endMills, TOKEN_REQUEST_PAYOUT));
+      if (CollectionUtils.isNotEmpty(tokenData)) {
         return tokenData;
+      } else {
+        logger
+            .info("读取邮件失败,开始重新读取剩余重试次数" + (tryTimes - i));
       }
     }
     return null;
   }
 
-  public static List<MailTokenData> filterAddMails(String userName, String mail, String password, int tryTimes,
+  public static List<MailTokenData> filterAddMails(String sendMailToken, String userId,
+      String userName, String mail, String password, int tryTimes,
       int space)
       throws InterruptedException, UnsupportedEncodingException {
+    Long startMills = GetNetworkTime.getNetworkDatetime() - 5000;//发送时间向前推5s
+   /* SendMailResult sendMailResult = SendMailTask
+        .tryExcute(sendMailToken, userId, space, TOKEN_TYPE_ADD_BITCOIN_ACCOUNT);
+    if (!sendMailResult.isActive()) {
+      return Lists.newArrayList();
+    }*/
+    Long endMills = 0L;
     for (int i = 1; i <= tryTimes; i++) {
+
+      long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+      logger.info("等待" + tryMailSpace + "ms读取邮件");
+      Thread.sleep(tryMailSpace);
+      endMills = +tryMailSpace;
       logger.info("开始读取邮件[" + mail + "]");
       List<MailTokenData> tokenData = ImapMailToken
-          .filterMailsForIsNew(userName, mail, password, buildSearchTerm(), TOKEN_ADD_BITCOIN_ACCOUNT);
-      ;
-      if (CollectionUtils.isEmpty(tokenData)) {
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
-        logger
-            .info("获取邮件失败,等待" + tryMailSpace + "ms重新获取");
-        Thread.sleep(tryMailSpace);
-        logger
-            .info("重新获取邮件开始剩余重试次数" + (tryTimes - i));
-      } else {
+          .filterMailsForIsNew(userName, mail, password,
+              buildSearchTerm(startMills, endMills, TOKEN_ADD_BITCOIN_ACCOUNT));
+      if (CollectionUtils.isNotEmpty(tokenData)) {
         return tokenData;
+      } else {
+        logger
+            .info("读取邮件失败,开始重新读取剩余重试次数" + (tryTimes - i));
       }
     }
     return null;
@@ -110,7 +144,8 @@ public class FilterMailUtil {
     try {
       try {
         System.out
-            .println(FilterMailUtil.filterTransferMails("yuanjiang123", "foshan001@aliyun.com", "liumeichen123", 1, 1));
+            .println(FilterMailUtil.filterAddMails("", "", "Wang@N01",
+                "lianghuihua01@bookbitbtc.com", "SHENzen007v", 1, 1));
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
       }
