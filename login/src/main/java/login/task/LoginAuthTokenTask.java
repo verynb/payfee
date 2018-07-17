@@ -37,8 +37,8 @@ public class LoginAuthTokenTask {
             logger.info("auth_token请求异常" + e.getMessage());
             return new LoginAuthTokenData(500, e.getMessage());
         } finally {
-            response.getHttpGet().releaseConnection();
-            response.getHttpClient().getConnectionManager().shutdown();
+//            response.getHttpGet().releaseConnection();
+//            response.getHttpClient().getConnectionManager().shutdown();
         }
         return loginAuthTokenData;
     }

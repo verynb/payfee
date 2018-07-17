@@ -44,7 +44,7 @@ public class CancelTokenTask {
       logger.info("取消转账token失败" + e.getMessage());
     } finally {
       response.getHttpGet().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
+//      response.getHttpClient().getConnectionManager().shutdown();
     }
     return "unkonw";
   }

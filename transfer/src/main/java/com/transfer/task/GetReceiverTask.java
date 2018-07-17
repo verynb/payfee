@@ -52,7 +52,7 @@ public class GetReceiverTask {
       return new UserInfo("", "", false);
     } finally {
       response.getHttpGet().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
+//      response.getHttpClient().getConnectionManager().shutdown();
     }
   }
 }

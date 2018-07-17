@@ -36,7 +36,7 @@ public class TransferPageTask {
       return new TransferPageData(null);
     } finally {
       response.getHttpGet().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
+//      response.getHttpClient().getConnectionManager().shutdown();
     }
   }
 
@@ -52,7 +52,7 @@ public class TransferPageTask {
           Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
         } catch (InterruptedException e) {
         }
-        logger.info("获取登录页面请求重试，剩余" + (config.getTransferErrorTimes() + 2 - i) + "次");
+        logger.info("获取转账页面请求重试，剩余" + (config.getTransferErrorTimes() + 2 - i) + "次");
       }
     }
     return new TransferPageData(null);

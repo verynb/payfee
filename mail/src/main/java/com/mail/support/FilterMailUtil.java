@@ -63,7 +63,7 @@ public class FilterMailUtil {
     Long endMills = 2000*60L;
     for (int i = 1; i <= tryTimes; i++) {
 
-      long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+      long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 8000;
       logger.info("等待" + tryMailSpace + "ms读取邮件");
       Thread.sleep(tryMailSpace);
       endMills = +tryMailSpace;

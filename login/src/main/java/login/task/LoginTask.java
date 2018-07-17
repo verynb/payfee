@@ -44,15 +44,18 @@ public class LoginTask {
         return new LoginResult(200, LoginExceptionConstance.LOGIN_SUCCESS);
       } else if(response.getResponse().getStatusLine().getStatusCode()==422){
         logger.info("无法处理的请求实体,cookie过期");
+        return new LoginResult(response.getResponse().getStatusLine().getStatusCode(), LoginExceptionConstance.LOGIN_TOKEN_ISNULL);
+      }else if(response.getResponse().getStatusLine().getStatusCode()==200){
         return new LoginResult(response.getResponse().getStatusLine().getStatusCode(), LoginExceptionConstance.ACCOUNT_EXCEPETION);
-      }else {
+      }
+      else {
         return new LoginResult(response.getResponse().getStatusLine().getStatusCode(), LoginExceptionConstance.NET_WORK_EXCEPETION);
       }
     } catch (Exception e) {
       return new LoginResult(500, LoginExceptionConstance.NET_WORK_EXCEPETION);
     } finally {
       response.getHttpPost().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
+//      response.getHttpClient().getConnectionManager().shutdown();
     }
   }
 
@@ -68,12 +71,10 @@ public class LoginTask {
       return new LoginResult(401, LoginExceptionConstance.PASSWORLD_ISNULL);
     }
     LoginAuthTokenData data = LoginAuthTokenTask.tryTimes(tryTime, space);
-    Thread.sleep(RandomUtil.ranNum(20));
     if (!data.isActive()) {
       logger.info("登录token为空");
       return new LoginResult(401, LoginExceptionConstance.LOGIN_TOKEN_ISNULL);
     }
-//    Thread.sleep(RandomUtil.ranNum(1000));
     for (int i = 1; i <= tryTime + 2; i++) {
       LoginResult loginResult = execute(data.getResult(), userName, password);
       logger.info(loginResult.toString());

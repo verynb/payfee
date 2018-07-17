@@ -72,8 +72,7 @@ public class TransferTask {
       return new TransferResult("error", "500");
     } finally {
       response.getHttpPost().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
-      logger.info("释放连接");
+//      response.getHttpClient().getConnectionManager().shutdown();
     }
   }
 }

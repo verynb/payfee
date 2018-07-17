@@ -36,19 +36,16 @@ public class TransferScheduledThread {
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     logger.info("开始加载用户数据");
 //    List<TransferUserInfo> userInfos = LoadTransferData.loadUserInfoData("./account.csv");
-    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo(1,"lhha001","hh8389lhhl",
-        "lianghuihua01@bookbitbtc.com","SHENzen007v","lhha003","",""));
+    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo(1, "lhha001", "hh8389lhhl",
+        "lianghuihua01@bookbitbtc.com", "SHENzen007v", "lhha003", "", ""),
+        new TransferUserInfo(1, "lhha002", "hh8389lhhl",
+            "lianghuihua01@bookbitbtc.com", "SHENzen007v", "lhha003", "", ""),
+        new TransferUserInfo(1, "lhha003", "hh8389lhhl",
+            "lianghuihua01@bookbitbtc.com", "SHENzen007v", "lhha001", "", ""));
 
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < userInfos.size(); i++) {
-      scheduledThreadPool.schedule(new TransferCrawlJob(userInfos.get(i), config),
-          5, TimeUnit.SECONDS);
-      try {
-        int space = RandomUtil.ranNum(config.getThreadspaceTime() * 1000 + 5000);
-        logger.info("任务时间间隔:" + space + "ms");
-        Thread.sleep(space);
-      } catch (InterruptedException e) {
-      }
+      scheduledThreadPool.schedule(new TransferCrawlJob(userInfos.get(i), config), 0, TimeUnit.SECONDS);
     }
     scheduledThreadPool.shutdown();
   }
