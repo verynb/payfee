@@ -1,6 +1,7 @@
 package com.transfer;
 
 import com.bit.network.RandomUtil;
+import com.google.common.collect.Lists;
 import com.transfer.entity.TransferUserInfo;
 import com.transfer.job.TransferCrawlJob;
 import com.transfer.load.LoadTransferData;
@@ -30,11 +31,13 @@ public class TransferScheduledThread {
   }
 
   public static void main(String[] args) {
-    IdentityCheck.checkVersion(version);
-    IdentityCheck.checkIdentity();
+//    IdentityCheck.checkVersion(version);
+//    IdentityCheck.checkIdentity();
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     logger.info("开始加载用户数据");
-    List<TransferUserInfo> userInfos = LoadTransferData.loadUserInfoData("./account.csv");
+//    List<TransferUserInfo> userInfos = LoadTransferData.loadUserInfoData("./account.csv");
+    List<TransferUserInfo> userInfos = Lists.newArrayList(new TransferUserInfo(1,"lhha001","hh8389lhhl",
+        "lianghuihua01@bookbitbtc.com","SHENzen007v","lhha003","",""));
 
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < userInfos.size(); i++) {
