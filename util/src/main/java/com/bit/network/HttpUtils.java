@@ -70,7 +70,7 @@ public class HttpUtils {
     // 设置最大的连接数
     cm.setMaxTotal(200);
     // 设置每个路由的基础连接数【默认，每个路由基础上的连接不超过2个，总连接数不能超过20】
-    cm.setDefaultMaxPerRoute(20);
+    cm.setDefaultMaxPerRoute(200);
 
   }
 
@@ -88,10 +88,6 @@ public class HttpUtils {
     ClientAndCookie clientAndCookie = getHttpClient();
     CookieStore cookieStore = clientAndCookie.getCookieStore();
     HttpClient httpClient = clientAndCookie.getHttpClient();
-    /*HttpClient httpClient = HttpClients
-        .custom()
-        .setDefaultCookieStore(cookieStore)
-        .build();*/
     // 设置请求参数
     StringBuilder param = new StringBuilder(crawlMeta.getUrl()).append("?");
     httpConf.getRequestParams().forEach((k, v) -> {
@@ -108,7 +104,6 @@ public class HttpUtils {
     // 执行网络请求
     HttpResponse response = httpClient.execute(httpGet);
     //保存cookie
-//    SessionHolder.updateCookie(cookieStore.getCookies());
     SessionHolder.updateCookie(cookieStore.getCookies());
     return new HttpResult(httpClient, httpGet, response);
   }
@@ -117,10 +112,6 @@ public class HttpUtils {
     ClientAndCookie clientAndCookie = getHttpClient();
     CookieStore cookieStore = clientAndCookie.getCookieStore();
     HttpClient httpClient = clientAndCookie.getHttpClient();
-    /*HttpClient httpClient = HttpClients
-        .custom()
-        .setDefaultCookieStore(cookieStore)
-        .build();*/
     HttpPost httpPost = new HttpPost(crawlMeta.getUrl());
     httpPost.setEntity(new UrlEncodedFormEntity(mapToName(httpConf.getRequestParams()), HTTP.UTF_8));
     // 设置请求头
