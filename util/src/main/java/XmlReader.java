@@ -2,6 +2,7 @@ import java.io.FileInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
@@ -16,9 +17,14 @@ public class XmlReader {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       DocumentBuilder builder = factory.newDocumentBuilder();
       Document doc = builder.parse(new FileInputStream("E:\\airbit.conf"));
-      NodeList nl = doc.getElementsByTagName("project01");
-      for (int i = 0; i < nl.getLength(); i++) {
-        System.out.print("车牌号码:" + doc.getElementsByTagName("location").item(i).getFirstChild().getNodeValue());
+      NodeList nl = doc.getElementsByTagName("location");
+      Node localtion = nl.item(0);
+      NodeList localtions=localtion.getChildNodes().item(0).getChildNodes();
+      for (int i = 0; i < localtions.getLength(); i++) {
+//        localtions.item(i)
+        System.out.println(localtions.item(i).getNodeName());
+//        nl.item(i).getChildNodes().item(0)
+//        System.out.println(localtions.item(i).getNodeValue());
       }
     } catch (Exception e) {
       e.printStackTrace();

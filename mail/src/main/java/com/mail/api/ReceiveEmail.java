@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
@@ -26,6 +27,33 @@ public class ReceiveEmail {
     }
   }
 
+  public MailTokenData mailTokenData() {
+    try {
+      mimeMessage.setFlag(Flags.Flag.DELETED, true);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+    return new MailTokenData(this.getToken(), this.getSentDate());
+
+  }
+
+  public Boolean filterSubject(String subject) {
+    Boolean result = false;
+    try {
+      result = mimeMessage.getSubject().equals(subject);
+    } catch (MessagingException e) {
+      e.printStackTrace();
+    }
+    if(result){
+      try {
+        mimeMessage.setFlag(Flag.SEEN, false);
+      } catch (MessagingException e) {
+        e.printStackTrace();
+      }
+    }
+    return result;
+  }
+
   public Long getSentDate() {
     Date sentDate = null;
     try {
@@ -42,9 +70,18 @@ public class ReceiveEmail {
     return token;
   }
 
+
   public Boolean filterSendUser(String userName) {
-    int start = replaceBodyTex.indexOf("**Dear")+6;
-    return replaceBodyTex.substring(start, start + userName.length()).equals(userName);
+    int start = replaceBodyTex.indexOf("**Dear") + 6;
+    Boolean result = replaceBodyTex.substring(start, start + userName.length()).equals(userName);
+    if (result) {
+      try {
+        mimeMessage.setFlag(Flag.SEEN, false);
+      } catch (MessagingException e) {
+        e.printStackTrace();
+      }
+    }
+    return result;
   }
 
   public void getMailContent(Part part) throws Exception {

@@ -1,33 +1,27 @@
 package com.transfer.job;
 
-import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
 import com.mail.api.MailTokenData;
 import com.mail.support.FilterMailUtil;
-import com.transfer.entity.SendMailResult;
+import com.mail.support.LoginResult;
 import com.transfer.entity.TransferPageData;
 import com.transfer.entity.TransferParam;
-import com.transfer.entity.TransferResult;
 import com.transfer.entity.TransferUserInfo;
 import com.transfer.entity.TransferWallet;
 import com.transfer.entity.UserInfo;
 import com.transfer.job.support.AbstractJob;
-import com.transfer.task.CancelTokenTask;
+import com.transfer.load.TransferUserFilterUtil;
 import com.transfer.task.GetReceiverTask;
 import com.transfer.task.TransferPageTask;
 import com.transfer.task.TransferTask;
-import com.mail.api.UserInfoFilterUtil;
 import config.ThreadConfig;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.stream.Collectors;
 import login.task.LoginTask;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mail.support.LoginResult;
 
 /**
  * <p>
@@ -68,52 +62,32 @@ public class TransferCrawlJob extends AbstractJob {
    * 7.完成转账
    */
   @Override
-  public void doFetchPage() throws Exception {
-    LoginResult loginResult = LoginTask.tryTimes(config.getTransferErrorTimes(),
-        config.getThreadspaceTime(),
+  public void doFetchPage() {
+    LoginResult loginResult = LoginTask.tryTimes(
         this.userInfo.getUserName(),
         this.userInfo.getPassword());
     if (!loginResult.isActive()) {
-      logger.info("用户[" + this.userInfo + "]登录失败");
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-2a", "用户[" + this.userInfo + "]登录失败");
-      //todo 会写失败日志
+      logger.info("用户[" + this.userInfo.getUserName() + "]登录失败");
+      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "登录失败");
       return;
     }
     //登录成功
     transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
         this.userInfo.getTransferTo());
-
-  }
+}
 
   /**
    * 执行转账功能
    */
-  private void transfer(String email, String mailPassword, String transferTo)
-      throws InterruptedException, UnsupportedEncodingException {
-    TransferPageData getTransferPage = TransferPageTask.tryTimes(config);
+  private void transfer(String email, String mailPassword, String transferTo) {
+    TransferPageData getTransferPage = TransferPageTask.execute(userInfo.getRow());
     if (!getTransferPage.isActive()) {
-      logger.info("抓取转账页面失败" + getTransferPage.toString());
-      //todo 会写失败日志
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "-1a", "抓取转账页面失败");
       return;
     }
     logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
-    List<TransferWallet> filterList = getTransferPage.getTransferWallets()
-        .stream()
-        .filter(t -> t.getAmount() > 0)
-        .collect(Collectors.toList());
-    if (CollectionUtils.isEmpty(filterList)) {
-      logger.info("转账金额没有大于0的数据[" + getTransferPage.toString() + "]");
-      //todo 会写失败日志
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0a", "转账金额小于0");
-      return;
-    }
-    TransferWallet wallet = filterList.get(0);
-    UserInfo receiverInfo = GetReceiverTask.execute(transferTo);
+    TransferWallet wallet = getTransferPage.getTransferWallets().get(0);
+    UserInfo receiverInfo = GetReceiverTask.execute(transferTo, userInfo.getRow());
     if (!receiverInfo.isActive()) {
-      logger.info("获取转出账户[" + transferTo + "]失败");
-      //todo 会写失败日志，记录状态
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "2a", "获取转出账户[" + transferTo + "]失败");
       return;
     }
     List<MailTokenData> tokenData = FilterMailUtil
@@ -126,7 +100,7 @@ public class TransferCrawlJob extends AbstractJob {
     if (CollectionUtils.isEmpty(tokenData)) {
       logger.info("获取邮件信息失败");
       //todo 会写失败日志，记录状态
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "4a", "获取邮件信息失败");
+      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "获取邮件信息失败");
       return;
     } else {
       logger.info("邮件解析成功");
@@ -140,7 +114,7 @@ public class TransferCrawlJob extends AbstractJob {
       TransferWallet wallet,
       String transferTo,
       UserInfo receiverInfo,
-      List<MailTokenData> tokenData) throws InterruptedException, UnsupportedEncodingException {
+      List<MailTokenData> tokenData) {
     TransferParam param = new TransferParam(getTransferPage.getAuthToken(),
         transferTo,
         wallet.getWalletId(),
@@ -151,31 +125,8 @@ public class TransferCrawlJob extends AbstractJob {
     );
     logger.info("开始转账");
     logger.info("转账参数=" + param.toString());
-    TransferResult transferCode = TransferTask.execute(param);
-    if (transferCode.getError().equals("invalid_token")) {
-      tokenData.remove(0);
-      Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-      logger.info("取消已有token");
-      String cancelStr = CancelTokenTask.execute(FilterMailUtil.TOKEN_TYPE_TRANSFER);
-      if (cancelStr.contains("success")) {
-        logger.info("取消已有token成功");
-        Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        transfer(email, mailPassword, transferTo);
-      } else {
-        logger.info("取消已有token失败=" + cancelStr);
-      }
-    }
-    if (transferCode.getStatus().equals("success")) {
-      logger.info("转账成功，休眠500毫秒执行下一轮转账");
-      Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-      logger.info("下一轮转账开始");
-      transfer(email, mailPassword, transferTo);
-    } else {
-      logger.info("转账失败");
-      //todo 会写失败日志，记录状态
-      UserInfoFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "5a", "转账失败");
-      return;
-    }
+    TransferTask.execute(param, userInfo.getRow());
+    return;
   }
 
   @Override

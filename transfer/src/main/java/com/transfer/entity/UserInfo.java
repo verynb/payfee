@@ -1,16 +1,21 @@
 package com.transfer.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
 /**
  * Created by yuanj on 2017/11/28.
  */
-@Value
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class UserInfo {
 
   private String user_id;
   private String name;
-  private Boolean response;
+  private boolean response;
 
   public String getUser_id() {
     return user_id;

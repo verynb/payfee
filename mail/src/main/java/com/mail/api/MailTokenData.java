@@ -12,6 +12,7 @@ public class MailTokenData {
     this.date = date;
   }
 
+
   public String getToken() {
     return token;
   }

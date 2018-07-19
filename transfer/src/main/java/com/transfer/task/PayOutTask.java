@@ -3,15 +3,13 @@ package com.transfer.task;
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
-import com.bit.network.HttpPostResult;
 import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
 import com.transfer.entity.PayOutParam;
 import com.transfer.entity.PayOutResult;
-import com.transfer.entity.TransferParam;
-import com.transfer.entity.TransferResult;
+import com.transfer.load.PayOutUserFilterUtil;
+import java.io.IOException;
 import java.util.Map;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class PayOutTask {
 
   private static Logger logger = LoggerFactory.getLogger(PayOutTask.class);
-  private static String URL = HostConfig.HOST+"cashouts";
+  private static String URL = HostConfig.HOST + "cashouts";
 
   private static Map getParam(PayOutParam param) {
     Map<String, String> paramMap = Maps.newHashMap();
@@ -47,30 +45,28 @@ public class PayOutTask {
   }
 
 
-  public static PayOutResult execute(PayOutParam param) {
-    HttpPostResult response = null;
+  public static PayOutResult execute(PayOutParam param,int index) {
     try {
-      response = HttpUtils
-          .doPost(CrawlMeta.getNewInstance(PayOutTask.class, URL), new CrawlHttpConf(getParam(param), getHeader()));
-      String returnStr = EntityUtils.toString(response.getResponse().getEntity());
-      logger.info("转账服务器返回:" + returnStr);
-      if (returnStr.contains("invalid_token") || returnStr.contains("invalid_transfer")) {
-        logger.info("转账token:" + param.getToken() + "不正确");
+      String response = HttpUtils
+          .post(CrawlMeta.getNewInstance(PayOutTask.class, URL), new CrawlHttpConf(getParam(param), getHeader()));
+      logger.info("提现服务器返回:" + response);
+      if (response.contains("invalid_token") || response.contains("invalid_transfer")) {
+        logger.info("提现token:" + param.getToken() + "不正确");
+        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", "提现token:" + param.getToken() + "不正确");
         return new PayOutResult("error", "invalid_token");
-      } else if (returnStr.contains("success")) {
-        logger.info("转账成功");
-        return GsonUtil.jsonToObject(returnStr, PayOutResult.class);
+      } else if (response.contains("success")) {
+        logger.info("提现成功");
+        PayOutUserFilterUtil.filterAndUpdateFlag(index, "1", "提现成功");
+        return GsonUtil.jsonToObject(response, PayOutResult.class);
       } else {
         logger.info("未知错误");
+        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", "未知错误");
         return new PayOutResult("error", "unkown");
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       logger.info("转账请求异常:" + e.getMessage());
+      PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", "网络异常");
       return new PayOutResult("error", "500");
-    } finally {
-      response.getHttpPost().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
-      logger.info("释放连接");
     }
   }
 }

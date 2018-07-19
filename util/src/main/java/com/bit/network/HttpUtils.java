@@ -10,24 +10,22 @@ import java.util.List;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
@@ -38,7 +36,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +48,17 @@ public class HttpUtils {
 
   private static Logger logger = LoggerFactory.getLogger(HttpUtils.class);
   // 默认超时时间：10s
-  private static final int TIME_OUT = 10 * 1000;
+  private static final int TIME_OUT = 100000;
   private static PoolingHttpClientConnectionManager cm = null;
 //  private static HttpRequestRetryHandler httpRequestRetryHandler = null;
+
+  private static RequestConfig config = RequestConfig
+      .custom()
+      .setRedirectsEnabled(false)
+      .setSocketTimeout(TIME_OUT)
+      .setConnectTimeout(TIME_OUT)
+      .setConnectionRequestTimeout(TIME_OUT)
+      .build();
 
   static {
     LayeredConnectionSocketFactory sslsf = null;
@@ -78,6 +83,8 @@ public class HttpUtils {
     CookieStore cookieStore = new BasicCookieStore();
     CloseableHttpClient httpClient = HttpClients.custom()
         .setDefaultCookieStore(cookieStore)
+        .setDefaultRequestConfig(config)
+        .setRetryHandler(retryHandler())
         .setConnectionManager(cm)
         .build();
     return new ClientAndCookie(httpClient, cookieStore);
@@ -132,7 +139,7 @@ public class HttpUtils {
   }
 
 
-  public static String get(CrawlMeta crawlMeta, CrawlHttpConf httpConf) {
+  public static String get(CrawlMeta crawlMeta, CrawlHttpConf httpConf) throws IOException {
     ClientAndCookie clientAndCookie = getHttpClient();
     CookieStore cookieStore = clientAndCookie.getCookieStore();
     HttpClient httpClient = clientAndCookie.getHttpClient();
@@ -149,54 +156,97 @@ public class HttpUtils {
       httpGet.addHeader(k, v);
     });
     // 执行网络请求
-    HttpResponse response = null;
-    HttpEntity entity = null;
     try {
-      response = httpClient.execute(httpGet);
+      logger.info("Executing request " + httpGet.getRequestLine());
+      HttpResponse response = httpClient.execute(httpGet);
       SessionHolder.updateCookie(cookieStore.getCookies());
-      entity = response.getEntity();
+      HttpEntity entity = response.getEntity();
       String result = EntityUtils.toString(entity, "utf-8");
       EntityUtils.consume(entity);
+      logger.info("Request finished");
       return result;
-    } catch (IOException e) {
-      e.printStackTrace();
     } finally {
-      if (entity == null) {
-        return null;
-      }
-      if (entity.isStreaming()) {
-        final InputStream instream;
-        try {
-          instream = entity.getContent();
-          if (instream != null) {
-            instream.close();
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-
+      httpGet.releaseConnection();
     }
-    return null;
   }
 
-  public static HttpPostResult post(CrawlMeta crawlMeta, CrawlHttpConf httpConf) throws Exception {
+  public static int login(CrawlMeta crawlMeta, CrawlHttpConf httpConf) throws IOException {
     ClientAndCookie clientAndCookie = getHttpClient();
     CookieStore cookieStore = clientAndCookie.getCookieStore();
     HttpClient httpClient = clientAndCookie.getHttpClient();
-    /*HttpClient httpClient = HttpClients
-        .custom()
-        .setDefaultCookieStore(cookieStore)
-        .build();*/
     HttpPost httpPost = new HttpPost(crawlMeta.getUrl());
     httpPost.setEntity(new UrlEncodedFormEntity(mapToName(httpConf.getRequestParams()), HTTP.UTF_8));
     // 设置请求头
     httpConf.getRequestHeaders().forEach((k, v) -> {
       httpPost.addHeader(k, v);
     });
-    HttpResponse response = httpClient.execute(httpPost);
-    SessionHolder.updateCookie(cookieStore.getCookies());
-    return new HttpPostResult(httpClient, httpPost, response);
+    try {
+      logger.info("Executing request " + httpPost.getRequestLine());
+      HttpResponse response = httpClient.execute(httpPost);
+      SessionHolder.updateCookie(cookieStore.getCookies());
+      logger.info("Request finished");
+      return response.getStatusLine().getStatusCode();
+    } finally {
+      httpPost.releaseConnection();
+    }
+  }
+
+
+  public static String post(CrawlMeta crawlMeta, CrawlHttpConf httpConf) throws IOException {
+    ClientAndCookie clientAndCookie = getHttpClient();
+    CookieStore cookieStore = clientAndCookie.getCookieStore();
+    HttpClient httpClient = clientAndCookie.getHttpClient();
+    HttpPost httpPost = new HttpPost(crawlMeta.getUrl());
+    httpPost.setEntity(new UrlEncodedFormEntity(mapToName(httpConf.getRequestParams()), HTTP.UTF_8));
+    // 设置请求头
+    httpConf.getRequestHeaders().forEach((k, v) -> {
+      httpPost.addHeader(k, v);
+    });
+    try {
+      logger.info("Executing request " + httpPost.getRequestLine());
+      HttpResponse response = httpClient.execute(httpPost);
+      SessionHolder.updateCookie(cookieStore.getCookies());
+      HttpEntity entity = response.getEntity();
+      String result = EntityUtils.toString(entity, "utf-8");
+      EntityUtils.consume(entity);
+      logger.info("Request finished");
+      return result;
+    } finally {
+      httpPost.releaseConnection();
+    }
+  }
+
+
+  private static HttpRequestRetryHandler retryHandler() {
+    return (exception, executionCount, context) -> {
+
+      logger.info("try request: " + executionCount);
+
+      if (executionCount >= 5) {
+        // Do not retry if over max retry count
+        return false;
+      }
+      if (exception instanceof InterruptedIOException) {
+        // Timeout
+        return false;
+      }
+      if (exception instanceof UnknownHostException) {
+        // Unknown host
+        return false;
+      }
+      if (exception instanceof SSLException) {
+        // SSL handshake exception
+        return false;
+      }
+      HttpClientContext clientContext = HttpClientContext.adapt(context);
+      HttpRequest request = clientContext.getRequest();
+      boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
+      if (idempotent) {
+        // Retry if the request is considered idempotent
+        return true;
+      }
+      return false;
+    };
   }
 
 }

@@ -3,11 +3,10 @@ package com.mail.task;
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
-import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
+import java.io.IOException;
 import java.util.Map;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class CancelTokenTask {
 
   private static Logger logger = LoggerFactory.getLogger(CancelTokenTask.class);
-  private static String URL = HostConfig.HOST+"tokens/cancel";
+  private static String URL = HostConfig.HOST + "tokens/cancel";
 
   private static Map getParam(String type) {
     Map<String, String> paramMap = Maps.newHashMap();
@@ -31,21 +30,9 @@ public class CancelTokenTask {
     return map;
   }
 
-  public static String execute(String type) {
-    HttpResult response = null;
-    try {
-      response = HttpUtils
-          .doGet(CrawlMeta.getNewInstance(CancelTokenTask.class, URL),
-              new CrawlHttpConf(getParam(type), getHeader()));
-      String jsonData = EntityUtils.toString(response.getResponse().getEntity());
-      logger.info("取消转账token返回信息=" + jsonData);
-      return jsonData;
-    } catch (Exception e) {
-      logger.info("取消转账token失败" + e.getMessage());
-    } finally {
-      response.getHttpGet().releaseConnection();
-//      response.getHttpClient().getConnectionManager().shutdown();
-    }
-    return "unkonw";
+  public static String execute(String type) throws IOException {
+    String response = HttpUtils.get(CrawlMeta.getNewInstance(CancelTokenTask.class, URL),
+            new CrawlHttpConf(getParam(type), getHeader()));
+    return response;
   }
 }

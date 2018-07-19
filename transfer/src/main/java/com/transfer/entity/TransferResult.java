@@ -30,6 +30,7 @@ public class TransferResult {
     this.error = error;
   }
 
+
   @Override
   public String toString() {
     return "TransferResult{" +

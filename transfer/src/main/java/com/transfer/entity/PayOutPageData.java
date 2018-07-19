@@ -3,7 +3,6 @@ package com.transfer.entity;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import sun.dc.pr.PRError;
 
 /**
  * Created by Administrator on 2017/11/27.
@@ -25,6 +23,7 @@ public class PayOutPageData {
   private String userAccountId = "";
   private List<PayOutWallet> payOutWallets = Lists.newArrayList();
   private Document doc = null;
+  private int ableWalletSize;
 
   public PayOutPageData(Document doc, String accountName) {
     this.doc = doc;
@@ -36,13 +35,13 @@ public class PayOutPageData {
       return;
     }
 
-    Element amonutElement = doc.select("select[name=partition_cashout_partition[user_account_id]]").first();
+    Element amonutElement = doc.select("select[id=partition_cashout_partition_user_account_id]").first();
     if (Objects.isNull(amonutElement)) {
       return;
     }
     String amountId = amonutElement.children().stream()
-        .filter(e -> StringUtils.isNotBlank(e.val()))
-        .filter(e -> e.val().equals(accountName))
+        .filter(e -> StringUtils.isNotBlank(e.text()))
+        .filter(e -> e.text().equals(accountName))
         .map(e -> e.val())
         .findFirst().orElse("");
 
@@ -68,6 +67,10 @@ public class PayOutPageData {
     this.authToken = authTokenElement.val();
     this.userAccountId = amountId;
     this.payOutWallets = payOutWallets;
+    this.ableWalletSize = (int) getPayOutWallets()
+        .stream()
+        .filter(t -> t.getAmount() > 10D)
+        .count();
   }
 
   public Boolean isActive() {
@@ -80,12 +83,13 @@ public class PayOutPageData {
     if (CollectionUtils.isEmpty(this.payOutWallets)) {
       return false;
     }
+//    return this.ableWalletSize > 0;
     return true;
   }
 
   @Override
   public String toString() {
-    return "TransferPageData{" +
+    return "PayOutPageData{" +
         "authToken='" + authToken + '\'' +
         ", userAccountId='" + userAccountId + '\'' +
         ", payOutWallets=" + payOutWallets +

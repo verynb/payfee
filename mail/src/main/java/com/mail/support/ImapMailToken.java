@@ -27,7 +27,7 @@ public class ImapMailToken {
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
   public static List<MailTokenData> filterMailsForIsNew(String userName, String mail,
-      String password, SearchTerm searchTerm) {
+      String password, SearchTerm searchTerm,String tokenType) {
     Store store = ImapStoreFactory.getStore(mail);
     Folder folder = null;
     List<MailTokenData> dataList = Lists.newArrayList();
@@ -39,7 +39,8 @@ public class ImapMailToken {
       dataList = inboxMessages.stream()
           .map(i -> new ReceiveEmail((MimeMessage) i))
           .filter(re -> re.filterSendUser(userName))
-          .map(re -> new MailTokenData(re.getToken(), re.getSentDate()))
+          .filter(re ->re.filterSubject(tokenType))
+          .map(re -> re.mailTokenData())
           .sorted(Comparator.comparing(MailTokenData::getDate).reversed())
           .collect(Collectors.toList());
     } catch (Exception e) {
@@ -48,8 +49,9 @@ public class ImapMailToken {
       try {
         folder.close(true);
         store.close();
-      } catch (MessagingException e) {
+      } catch (Exception e) {
         logger.info(e.getMessage());
+        return dataList;
       }
       return dataList;
     }

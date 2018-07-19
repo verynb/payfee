@@ -1,6 +1,7 @@
 package com.transfer.entity;
 
 import com.google.common.collect.Lists;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,7 +45,9 @@ public class TransferPageData {
           String walletId = e.val();
           Double amount = Double.valueOf(e.text().substring(e.text().indexOf("$") + 1, e.text().length()));
           return new TransferWallet(walletId, amount);
-        }).collect(Collectors.toList());
+        }).filter(w -> w.getAmount() > 0)
+        .sorted(Comparator.comparing(TransferWallet::getAmount).reversed())
+        .collect(Collectors.toList());
 
     Element authTokenElement = doc.select("form[id=new_partition_transfer_partition]")
         .select("input[name=authenticity_token]").first();
@@ -64,6 +67,14 @@ public class TransferPageData {
       return false;
     }
     return true;
+  }
+
+  public Boolean walletAmont() {
+    List<TransferWallet> filterList = getTransferWallets()
+        .stream()
+        .filter(t -> t.getAmount() > 0)
+        .collect(Collectors.toList());
+    return filterList.size() > 0;
   }
 
   @Override

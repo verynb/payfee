@@ -15,6 +15,7 @@ public class ImapStoreFactory {
   private static String parseHost(String host) {
     int start = host.indexOf("@");
     int last = host.lastIndexOf(".com");
-    return host.substring(start+1, last);
+    String provider = host.substring(start + 1, last);
+    return (!provider.equals("163") && !provider.equals("aliyun")) ? "mxhichina" : provider;
   }
 }

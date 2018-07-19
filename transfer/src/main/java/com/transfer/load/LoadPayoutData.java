@@ -1,6 +1,7 @@
 package com.transfer.load;
 
 import com.google.common.collect.Lists;
+import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.TransferUserInfo;
 import de.siegmar.fastcsv.reader.CsvContainer;
 import de.siegmar.fastcsv.reader.CsvReader;
@@ -22,15 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
-public class LoadTransferData {
+public class LoadPayoutData {
 
-  private static Logger logger = LoggerFactory.getLogger(LoadTransferData.class);
+  private static Logger logger = LoggerFactory.getLogger(LoadPayoutData.class);
 
-  public static List<TransferUserInfo> loadUserInfoData(String filePath) {
+  public static List<PayOutUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
     csvReader.setContainsHeader(true);
     CsvContainer csv = null;
-    List<TransferUserInfo> userInfos = Lists.newArrayList();
+    List<PayOutUserInfo> userInfos = Lists.newArrayList();
     try {
       csv = csvReader.read(Paths.get(filePath), StandardCharsets.UTF_8);
       if (csv == null) {
@@ -38,13 +39,14 @@ public class LoadTransferData {
       int i = 0;
       for (CsvRow row : csv.getRows()) {
         i++;
-        TransferUserInfo userInfo = new TransferUserInfo(
+        PayOutUserInfo userInfo = new PayOutUserInfo(
             i,
-            row.getField("tuser"),
-            row.getField("tpassword"),
-            row.getField("tmail"),
-            row.getField("tmailpassword"),
-            row.getField("ruser"),
+            row.getField("user"),
+            row.getField("pwd"),
+            row.getField("mail"),
+            row.getField("mail_pwd"),
+            row.getField("account_name"),
+            row.getField("wallet_add"),
             row.getField("flag"),
             row.getField("flagMessage"));
         userInfos.add(userInfo);
@@ -63,25 +65,26 @@ public class LoadTransferData {
   }
 
 
-  public static void writeResult(List<TransferUserInfo> userInfos) {
+  public static void writeResult(List<PayOutUserInfo> userInfos) {
     try {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account1.csv")), "UTF-8"));
+              new FileOutputStream(new File("./account.csv")), "UTF-8"));
 
-      FileWriter fw = new FileWriter("./account1.csv");
-      String header = "tuser,tpassword,tmail,tmailpassword,ruser,flag,flagMessage\r\n";
+      FileWriter fw = new FileWriter("./account.csv");
+      String header = "user,pwd,mail,mail_pwd,account_name,wallet_add,flag,flagMessage\r\n";
       writer.write(header);
       for (int i = 0; i < userInfos.size(); i++) {
-        TransferUserInfo info = userInfos.get(i);
+        PayOutUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();
         str.append(
-            info.getUserName().toString() + ","
-                + info.getPassword().toString() + ","
-                + info.getEmail().toString() + ","
-                + info.getMailPassword().toString() + ","
-                + info.getTransferTo().toString() + ","
+            info.getAccount().toString() + ","
+                + info.getAccountPassword().toString() + ","
+                + info.getMailbox().toString() + ","
+                + info.getMailboxPassword().toString() + ","
+                + info.getWalletName().toString() + ","
+                + info.getWalletAddress().toString() + ","
                 + info.getFlag().toString() + ","
                 + info.getFlagMessage().toString() + "\r\n");
         writer.write(str.toString());

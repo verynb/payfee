@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.transfer.entity.AddBitAccountParam;
 import com.transfer.entity.PayOutParam;
 import com.transfer.entity.PayOutResult;
+import java.io.IOException;
 import java.util.Map;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -20,8 +21,9 @@ import org.slf4j.LoggerFactory;
 public class AddBitAccountTask {
 
   private static Logger logger = LoggerFactory.getLogger(AddBitAccountTask.class);
-  private static String URL = HostConfig.HOST+"user_accounts";
-  private static String referer = HostConfig.HOST+"cashouts";
+  private static String URL = HostConfig.HOST + "user_accounts";
+  private static String referer = HostConfig.HOST + "cashouts";
+
   private static Map getParam(AddBitAccountParam param) {
     Map<String, String> paramMap = Maps.newHashMap();
     paramMap.put("authenticity_token", param.getAuthenticityToken());
@@ -43,30 +45,24 @@ public class AddBitAccountTask {
   }
 
 
-  public static PayOutResult execute(AddBitAccountParam param) {
-    HttpPostResult response = null;
-    try {
-      response = HttpUtils
-          .doPost(CrawlMeta.getNewInstance(AddBitAccountTask.class, URL), new CrawlHttpConf(getParam(param), getHeader()));
-      String returnStr = EntityUtils.toString(response.getResponse().getEntity());
-      logger.info("转账服务器返回:" + returnStr);
-      if (returnStr.contains("invalid_token") || returnStr.contains("invalid_transfer")) {
-        logger.info("转账token:" + param.getToken() + "不正确");
+  public static PayOutResult execute(AddBitAccountParam param){
+    try{
+      String response = HttpUtils
+          .post(CrawlMeta.getNewInstance(AddBitAccountTask.class, URL), new CrawlHttpConf(getParam(param), getHeader()));
+      logger.info("添加火币服务返回:" + response);
+      if (response.contains("invalid_token") || response.contains("invalid_transfer")) {
+        logger.info("火币token:" + param.getToken() + "不正确");
         return new PayOutResult("error", "invalid_token");
-      } else if (returnStr.contains("success")) {
-        logger.info("转账成功");
-        return GsonUtil.jsonToObject(returnStr, PayOutResult.class);
+      } else if (response.contains("success")) {
+        logger.info("添加火币成功");
+        return GsonUtil.jsonToObject(response, PayOutResult.class);
       } else {
         logger.info("未知错误");
         return new PayOutResult("error", "unkown");
       }
-    } catch (Exception e) {
-      logger.info("转账请求异常:" + e.getMessage());
-      return new PayOutResult("error", "500");
-    } finally {
-      response.getHttpPost().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
-      logger.info("释放连接");
+    }catch (IOException e){
+      return new PayOutResult("error", "unkown");
     }
+
   }
 }

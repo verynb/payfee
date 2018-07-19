@@ -3,12 +3,12 @@ package com.transfer.task;
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
-import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
 import com.google.common.collect.Maps;
 import com.transfer.entity.UserInfo;
+import com.transfer.load.TransferUserFilterUtil;
+import java.io.IOException;
 import java.util.Map;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +17,10 @@ import org.slf4j.LoggerFactory;
  */
 public class GetReceiverTask {
 
+  private static volatile Map<String, UserInfo> receiverCache = Maps.newConcurrentMap();
+
   private static Logger logger = LoggerFactory.getLogger(GetReceiverTask.class);
-  private static String URL = HostConfig.HOST+"users/is_down_line_binary";
+  private static String URL = HostConfig.HOST + "users/is_down_line_binary";
 
 
   private static Map getParam(String userName) {
@@ -33,26 +35,25 @@ public class GetReceiverTask {
     return headMap;
   }
 
-  public static UserInfo execute(String userName) {
-    logger.info("开始获取转出账户[" + userName + "]信息");
-    HttpResult response = null;
+  public static UserInfo execute(String userName,int row){
     try {
-      response = HttpUtils
-          .doGet(CrawlMeta.getNewInstance(GetReceiverTask.class, URL),
-              new CrawlHttpConf(getParam(userName), getHeader()));
-      String jsonData = EntityUtils.toString(response.getResponse().getEntity());
-//      logger.info("获取转账人信息=" + jsonData);
-      UserInfo userInfo = GsonUtil.jsonToObject(jsonData, UserInfo.class);
-      if (!userInfo.getResponse()) {
-        logger.info("转账人[" + userName + "]不存在或者不存在于您的二进制树中");
+      logger.info("开始获取转出账户[" + userName + "]信息");
+      if (receiverCache.containsKey(userName)) {
+        logger.info("获取转出账户[" + userName + "]信息FROM CACHE");
+        return receiverCache.get(userName);
+      } else {
+        String response = HttpUtils.get(CrawlMeta.getNewInstance(GetReceiverTask.class, URL),
+            new CrawlHttpConf(getParam(userName), getHeader()));
+        UserInfo userInfo = GsonUtil.jsonToObject(response, UserInfo.class);
+        if (!userInfo.getResponse()) {
+          logger.info("转账人[" + userName + "]不存在或者不存在于您的二进制树中");
+          TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "转账人[" + userName + "]非下线");
+        }
+        return receiverCache.putIfAbsent(userName, userInfo);
       }
-      return userInfo;
-    } catch (Exception e) {
-      logger.info("获取转账人信息失败" + e.getMessage());
-      return new UserInfo("", "", false);
-    } finally {
-      response.getHttpGet().releaseConnection();
-//      response.getHttpClient().getConnectionManager().shutdown();
+    }catch (IOException e){
+      TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "网络异常");
+      return new UserInfo();
     }
   }
 }
