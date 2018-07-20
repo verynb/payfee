@@ -1,5 +1,6 @@
 package identity;
 
+import com.bit.network.GetNetworkTime;
 import com.google.common.collect.Lists;
 import identity.LocationConfig;
 import java.io.FileInputStream;
@@ -37,7 +38,7 @@ public class XmlReader {
   private static Document getDoc() throws ParserConfigurationException, IOException, SAXException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
-    Document doc = builder.parse(new FileInputStream("E:\\airbit.conf"));
+    Document doc = builder.parse(GetNetworkTime.getNetworkConfig());
     return doc;
   }
 

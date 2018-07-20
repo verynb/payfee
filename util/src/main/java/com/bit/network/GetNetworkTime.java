@@ -37,7 +37,7 @@ public class GetNetworkTime {
     }
   }
 
-  public static InputStream getNetworkLimiteTime() {
+  public static InputStream getNetworkConfig() {
     try {
       URL url = new URL(LIMITEDTIME_URL);// 取得资源对象
       URLConnection uc = url.openConnection();// 生成连接对象
@@ -49,25 +49,5 @@ public class GetNetworkTime {
     } catch (IOException e) {
       return null;
     }
-  }
-
-  public static String getNetworkVersion() {
-    HttpResult response = null;
-    try {
-      response = HttpUtils.doGet(CrawlMeta.getNewInstance(GetNetworkTime.class, LIMITEDTIME_URL), new CrawlHttpConf());
-      String date = EntityUtils.toString(response.getResponse().getEntity());
-      int index = date.indexOf(",");
-      String version = date.substring(0, index);
-      logger.info("version-->" + version);
-      return version;
-    } catch (Exception e) {
-      logger.info("取版本号失败 Exception-->:" + e.getMessage());
-      logger.info("取版本号失败response-->" + response.getResponse().toString());
-      throw new RuntimeException("取时间失败");
-    }
-  }
-
-  public static void main(String[] args) {
-    getNetworkLimiteTime();
   }
 }

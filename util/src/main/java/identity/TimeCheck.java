@@ -15,10 +15,6 @@ public class TimeCheck {
   private static final String FORMART = "yyyy-MM-dd HH:mm:ss";
   private static Logger logger = LoggerFactory.getLogger(TimeCheck.class);
 
-  public static Boolean checkDay() {
-    return GetNetworkTime.getNetworkDatetime() <= LIMIT_DAY;
-  }
-
   public static Boolean checkMonth(String time) {
     Long timeMills = 1601485200000L;
     logger.info("验证时间[" + time + "]");
@@ -28,20 +24,5 @@ public class TimeCheck {
       logger.info("验证时间[" + e.getMessage() + "]");
     }
     return GetNetworkTime.getNetworkDatetime() <= timeMills;
-  }
-
-  public static Boolean checkVersion(String version) {
-    String v = GetNetworkTime.getNetworkVersion();
-    if (v == null) {
-      throw new RuntimeException("取时间失败");
-    }
-    return v.equals(version);
-  }
-
-  public static Boolean isCurrentDay(Long time) {
-//    DateTime dateTime = new DateTime(GetNetworkTime.getNetworkDatetime());
-    DateTime dateTime = new DateTime();
-    return dateTime.minuteOfDay().withMinimumValue().isBefore(time) && dateTime.minuteOfDay().withMaximumValue()
-        .isAfter(time);
   }
 }
