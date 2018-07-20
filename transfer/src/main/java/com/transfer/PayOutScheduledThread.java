@@ -35,7 +35,7 @@ public class PayOutScheduledThread {
   private static String location = "qita";
   private static String pName = "提现";
 
-  private static final ThreadConfig config = new ThreadConfig(2, 10, 100);
+  private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 
   private static LocationConfig locationConfig = null;
 
@@ -74,8 +74,10 @@ public class PayOutScheduledThread {
       }
     }
     LoadPayoutData.writeResult(PayOutUserFilterUtil.users);
-    long successCount = PayOutUserFilterUtil.users.stream().filter(u -> u.getFlag().equals("1")).count();
-    long failueCount = PayOutUserFilterUtil.users.stream().filter(u -> u.getFlag().equals("0")).count();
+    long successCount = PayOutUserFilterUtil.users.stream()
+        .filter(u -> StringUtils.isNotBlank(u.getFlag()))
+        .filter(u -> u.getFlag().equals("1")).count();
+    long failueCount = PayOutUserFilterUtil.users.size() - successCount;
     System.out.println("所有任务执行完毕，成功：" + successCount + ",失败：" + failueCount);
     System.out.println("输入任意结束");
     Scanner scan = new Scanner(System.in);

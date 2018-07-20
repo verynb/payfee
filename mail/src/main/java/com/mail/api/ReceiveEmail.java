@@ -48,7 +48,7 @@ public class ReceiveEmail {
     } catch (MessagingException e) {
       e.printStackTrace();
     }
-    if (result) {
+    if (!result) {
       try {
         mimeMessage.setFlag(Flag.SEEN, false);
       } catch (MessagingException e) {
@@ -80,7 +80,7 @@ public class ReceiveEmail {
     String currentUserName = replaceBodyTex.substring(start, start + userName.length());
     logger.info("当前用户->当前邮件用户[" + userName + "]->" + currentUserName);
     Boolean result = currentUserName.equals(userName);
-    if (result) {
+    if (!result) {
       try {
         mimeMessage.setFlag(Flag.SEEN, false);
       } catch (MessagingException e) {

@@ -32,7 +32,7 @@ public class TransferScheduledThread {
   private static String location = "qita";
   private static String pName = "收分";
 
-  private static final ThreadConfig config = new ThreadConfig(2, 10, 100);
+  private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 
   private static LocationConfig locationConfig = null;
 
@@ -59,7 +59,7 @@ public class TransferScheduledThread {
     IdentityCheck.checkVersion(version, locationConfig.getVer());
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
-    LoadTransferData.loadUserInfoData("./account1.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
+    LoadTransferData.loadUserInfoData("./account.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < TransferUserFilterUtil.users.size(); i++) {
       scheduledThreadPool
@@ -72,8 +72,10 @@ public class TransferScheduledThread {
       }
     }
     LoadTransferData.writeResult(TransferUserFilterUtil.users);
-    long successCount = TransferUserFilterUtil.users.stream().filter(u -> u.getFlag().equals("1")).count();
-    long failueCount = TransferUserFilterUtil.users.stream().filter(u -> u.getFlag().equals("0")).count();
+    long successCount = TransferUserFilterUtil.users.stream()
+        .filter(u -> StringUtils.isNotBlank(u.getFlag()))
+        .filter(u -> u.getFlag().equals("1")).count();
+    long failueCount = TransferUserFilterUtil.users.size() - successCount;
     System.out.println("所有任务执行完毕，成功：" + successCount + ",失败：" + failueCount);
     System.out.println("输入任意结束");
     Scanner scan = new Scanner(System.in);
