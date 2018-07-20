@@ -15,6 +15,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +69,7 @@ public class LoadTransferData {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account1.csv")), "UTF-8"));
+              new FileOutputStream(new File("./account1.csv")), StandardCharsets.UTF_8));
 
       FileWriter fw = new FileWriter("./account1.csv");
       String header = "tuser,tpassword,tmail,tmailpassword,ruser,flag,flagMessage\r\n";
@@ -82,8 +83,8 @@ public class LoadTransferData {
                 + info.getEmail().toString() + ","
                 + info.getMailPassword().toString() + ","
                 + info.getTransferTo().toString() + ","
-                + info.getFlag().toString() + ","
-                + info.getFlagMessage().toString() + "\r\n");
+                + Optional.ofNullable(info.getFlag()).orElse("0").toString() + ","
+                + Optional.ofNullable(info.getFlagMessage()).orElse("未知错误").toString() + "\r\n");
         writer.write(str.toString());
         writer.flush();
       }

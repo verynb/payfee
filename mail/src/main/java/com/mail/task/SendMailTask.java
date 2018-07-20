@@ -24,6 +24,7 @@ public class SendMailTask {
   private static Logger logger = LoggerFactory.getLogger(SendMailTask.class);
   private static String URL = HostConfig.HOST + "tokens";
   private static String PAY_OT_URL = HostConfig.HOST + "cashouts";
+  private static int tryTimes = 10;
 
   private static Map getParam(String token, String userId, String type) {
     Map<String, String> paramMap = Maps.newHashMap();
@@ -52,9 +53,13 @@ public class SendMailTask {
       Element addBitElement = doc.select("form[id=new_user_account]")
           .select("input[name=authenticity_token]").first();
       if (type.equals(FilterMailUtil.TOKEN_TYPE_REQUEST_PAYOUT)) {
-        return authTokenElement.val();
-      } else {
-        return addBitElement.val();
+        String authToken = authTokenElement.val();
+        logger.info("刷新后request_payout_token=[" + authToken + "]");
+        return authToken;
+      } else if (type.equals(FilterMailUtil.TOKEN_TYPE_ADD_BITCOIN_ACCOUNT)) {
+        String addBitToken = addBitElement.val();
+        logger.info("add_bitcoin_account_token=[" + addBitToken + "]");
+        return addBitToken;
       }
     }
     return token;
@@ -79,6 +84,10 @@ public class SendMailTask {
         } else {
           logger.info("取消已有token失败=" + cancelStr);
         }
+      }
+      if (!result.isActive() && tryTimes > 0) {
+        tryTimes--;
+        return tryExcute(freshToken(type, token), userId, space, type);
       }
       return result;
     } catch (IOException e) {

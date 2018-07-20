@@ -1,5 +1,6 @@
 package com.mail.api;
 
+import com.mail.support.ImapMailStore;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,10 +10,12 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReceiveEmail {
 
+  private static Logger logger = LoggerFactory.getLogger(ReceiveEmail.class);
   private MimeMessage mimeMessage = null;
   private StringBuffer bodyText = new StringBuffer(); // 存放邮件内容的StringBuffer对象
   private String replaceBodyTex = "";
@@ -41,10 +44,11 @@ public class ReceiveEmail {
     Boolean result = false;
     try {
       result = mimeMessage.getSubject().equals(subject);
+      logger.info("当前主题[" + result + "]");
     } catch (MessagingException e) {
       e.printStackTrace();
     }
-    if(result){
+    if (result) {
       try {
         mimeMessage.setFlag(Flag.SEEN, false);
       } catch (MessagingException e) {
@@ -73,7 +77,9 @@ public class ReceiveEmail {
 
   public Boolean filterSendUser(String userName) {
     int start = replaceBodyTex.indexOf("**Dear") + 6;
-    Boolean result = replaceBodyTex.substring(start, start + userName.length()).equals(userName);
+    String currentUserName = replaceBodyTex.substring(start, start + userName.length());
+    logger.info("当前用户->当前邮件用户[" + userName + "]->" + currentUserName);
+    Boolean result = currentUserName.equals(userName);
     if (result) {
       try {
         mimeMessage.setFlag(Flag.SEEN, false);

@@ -30,49 +30,23 @@ public class RequestPayoutPageTask {
 
   private static Logger logger = LoggerFactory.getLogger(RequestPayoutPageTask.class);
   private static String URL = HostConfig.HOST + "cashouts";
+  private static int tryTime = 20;
 
   public static PayOutPageData execute(String walletName) {
     try {
       String response = HttpUtils
           .get(CrawlMeta.getNewInstance(RequestPayoutPageTask.class, URL), new CrawlHttpConf());
       Document doc = Jsoup.parse(response);
-      return new PayOutPageData(doc, walletName);
+//      logger.info(doc.toString());
+      PayOutPageData data = new PayOutPageData(doc, walletName);
+      if (!data.isActive() && tryTime > 0) {
+        tryTime--;
+        return execute(walletName);
+      }
+      return data;
     } catch (IOException e) {
       return new PayOutPageData(null, walletName);
     }
 
   }
-
-  public static PayOutPageData tryTimes(PayOutUserInfo userInfo, ThreadConfig config, String walletName) {
-    logger.info("开始抓提现页面");
-    for (int i = 1; i <= config.getTransferErrorTimes() + 2; i++) {
-      PayOutPageData code = execute(walletName);
-      if (code.isActive()) {
-        return code;
-      } else {
-        try {
-          if (StringUtils.isBlank(code.getUserAccountId())) {
-            logger.info("添加火币地址");
-            List<MailTokenData> tokenData = FilterMailUtil
-                .filterAddMails(code.getAddBitToken(), "", userInfo.getAccount(),
-                    userInfo.getMailbox(),
-                    userInfo.getMailboxPassword(),
-                    config.getTransferErrorTimes(), config.getMailSpaceTime());
-            if (CollectionUtils.isNotEmpty(tokenData)) {
-              AddBitAccountTask.execute(
-                  new AddBitAccountParam(code.getAddBitToken(), userInfo.getWalletName(), userInfo.getWalletAddress(),
-                      tokenData.get(0).getToken()));
-            }
-          }
-          logger.info(code.toString());
-          Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
-        } catch (InterruptedException e) {
-          return new PayOutPageData(null, walletName);
-        }
-        logger.info("提现页面请求重试，剩余" + (config.getTransferErrorTimes() + 2 - i) + "次");
-      }
-    }
-    return new PayOutPageData(null, walletName);
-  }
-
 }

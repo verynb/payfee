@@ -33,14 +33,17 @@ public class LoginAuthTokenTask {
       if (!Objects.isNull(element)) {
         loginAuthTokenData = new LoginAuthTokenData(200, element.val());
         logger.info("auth_token[" + loginAuthTokenData.getResult() + "]");
+        return loginAuthTokenData;
       } else {
-        loginAuthTokenData = new LoginAuthTokenData(400, INCAPSULA_ERROR);
-        logger.info("auth_token失败,返回" + doc.toString());
+        try {
+          Thread.sleep(2000L);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        return execute();
       }
-      return loginAuthTokenData;
     } catch (IOException e) {
-      loginAuthTokenData = new LoginAuthTokenData(400, INCAPSULA_ERROR);
+      return execute();
     }
-    return loginAuthTokenData;
   }
 }

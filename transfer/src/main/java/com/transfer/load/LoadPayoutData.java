@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +71,7 @@ public class LoadPayoutData {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account.csv")), "UTF-8"));
+              new FileOutputStream(new File("./account.csv")), StandardCharsets.UTF_8));
 
       FileWriter fw = new FileWriter("./account.csv");
       String header = "user,pwd,mail,mail_pwd,account_name,wallet_add,flag,flagMessage\r\n";
@@ -85,8 +86,8 @@ public class LoadPayoutData {
                 + info.getMailboxPassword().toString() + ","
                 + info.getWalletName().toString() + ","
                 + info.getWalletAddress().toString() + ","
-                + info.getFlag().toString() + ","
-                + info.getFlagMessage().toString() + "\r\n");
+                + Optional.ofNullable(info.getFlag()).orElse("0").toString() + ","
+                + Optional.ofNullable(info.getFlagMessage()).orElse("未知错误").toString() + "\r\n");
         writer.write(str.toString());
         writer.flush();
       }

@@ -45,7 +45,7 @@ public class TransferPageData {
           String walletId = e.val();
           Double amount = Double.valueOf(e.text().substring(e.text().indexOf("$") + 1, e.text().length()));
           return new TransferWallet(walletId, amount);
-        }).filter(w -> w.getAmount() > 0)
+        })
         .sorted(Comparator.comparing(TransferWallet::getAmount).reversed())
         .collect(Collectors.toList());
 

@@ -27,7 +27,7 @@ public class TransferScheduledThread {
 
   private static String version = "1.3";
 
-  private static final ThreadConfig config = new ThreadConfig(2, 10, 20);
+  private static final ThreadConfig config = new ThreadConfig(2, 10, 100);
 
   public static String getVersionData() {
     return new DateTime().getMillis() + "-" + version;

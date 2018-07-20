@@ -4,7 +4,6 @@ import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
 import com.bit.network.HttpUtils;
-import com.bit.network.RandomUtil;
 import com.google.common.collect.Maps;
 import com.mail.support.LoginAuthTokenData;
 import com.mail.support.LoginExceptionConstance;
@@ -33,7 +32,7 @@ public class LoginTask {
     return param;
   }
 
-  private static LoginResult execute(String tokenValue, String userName, String password){
+  private static LoginResult execute(String tokenValue, String userName, String password) {
     CrawlHttpConf conf = new CrawlHttpConf(getParam(tokenValue, userName, password));
     try {
       int code = HttpUtils
@@ -48,7 +47,7 @@ public class LoginTask {
         return new LoginResult(code,
             LoginExceptionConstance.LOGIN_TOKEN_ISNULL);
       }
-    }catch (IOException e){
+    } catch (IOException e) {
       return new LoginResult(400,
           LoginExceptionConstance.TRY_EXCEPETION);
     }
@@ -65,6 +64,17 @@ public class LoginTask {
       return new LoginResult(401, LoginExceptionConstance.PASSWORLD_ISNULL);
     }
     LoginAuthTokenData data = LoginAuthTokenTask.execute();
-    return execute(data.getResult(), userName, password);
+    LoginResult result = execute(data.getResult(), userName, password);
+    if (!result.isActive()) {
+      try {
+        Thread.sleep(2000L);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      return tryTimes(userName, password);
+    } else {
+      logger.info("用户[" + userName + "]登录成功");
+      return result;
+    }
   }
 }

@@ -6,6 +6,7 @@ import com.mail.api.MailTokenData;
 import com.mail.api.UserInfoFilterUtil;
 import com.mail.support.FilterMailUtil;
 import com.mail.support.LoginResult;
+import com.transfer.entity.AddBitAccountParam;
 import com.transfer.entity.PayOutPageData;
 import com.transfer.entity.PayOutParam;
 import com.transfer.entity.PayOutResult;
@@ -13,6 +14,7 @@ import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.PayOutWallet;
 import com.transfer.job.support.AbstractJob;
 import com.transfer.load.PayOutUserFilterUtil;
+import com.transfer.task.AddBitAccountTask;
 import com.transfer.task.CancelTokenTask;
 import com.transfer.task.PayOutTask;
 import com.transfer.task.RequestPayoutPageTask;
@@ -26,6 +28,7 @@ import login.task.LoginTask;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,19 +87,58 @@ public class RequestPayoutJob extends AbstractJob {
 
   }
 
+  private String addBitAddress(String addBitToken) {
+    logger.info("添加火币地址");
+    List<MailTokenData> tokenData = FilterMailUtil
+        .filterAddMails(addBitToken, "", userInfo.getAccount(),
+            userInfo.getMailbox(),
+            userInfo.getMailboxPassword(),
+            config.getTransferErrorTimes(), config.getMailSpaceTime());
+    if (CollectionUtils.isNotEmpty(tokenData)) {
+      PayOutResult payOutResult = AddBitAccountTask.execute(
+          new AddBitAccountParam(addBitToken, userInfo.getWalletName(), userInfo.getWalletAddress(),
+              tokenData.get(0).getToken()));
+      if (payOutResult.getStatus().equals("error")) {
+        PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "添加火币地址失败");
+        return "error";
+      } else {
+        return "success";
+      }
+    } else {
+      PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "添加火币token获取失败");
+      return "error";
+    }
+
+  }
+
   /**
    * 执行体现功能
    */
   private void transfer(String email, String mailPassword, String walletName, Double mount) {
-    PayOutPageData getTransferPage = RequestPayoutPageTask.tryTimes(userInfo, config, walletName);
+    PayOutPageData getTransferPage = RequestPayoutPageTask.execute(walletName);
     if (!getTransferPage.isActive()) {
       logger.info("抓取提现页面失败" + getTransferPage.toString());
       //todo 会写失败日志
       PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "抓取提现页面失败");
       return;
     }
+    if (StringUtils.isBlank(getTransferPage.getUserAccountId())) {
+      String addResult = addBitAddress(getTransferPage.getAddBitToken());
+      if (addResult.equals("success")) {
+        try {
+          logger.info("等待10s重新提现");
+          Thread.sleep(10000L);
+        } catch (InterruptedException e) {
+        } finally {
+          transfer(email, mailPassword, walletName, mount);
+        }
+      } else {
+        return;
+      }
+    }
     logger.info("抓取提现页面数据成功[" + getTransferPage.toString() + "]");
-    PayOutWallet wallet = getTransferPage.getPayOutWallets()
+    PayOutWallet wallet = getTransferPage.getPayOutWallets().get(0);
+    /*PayOutWallet wallet = getTransferPage.getPayOutWallets()
         .stream()
         .filter(t -> t.getAmount() > mount)
         .findFirst().orElse(null);
@@ -105,7 +147,7 @@ public class RequestPayoutJob extends AbstractJob {
       //todo 会写失败日志
       PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "提现金额小于100");
       return;
-    }
+    }*/
     List<MailTokenData> tokenData = FilterMailUtil
         .filterRequestMails(getTransferPage.getAuthToken(), "", userInfo.getAccount(),
             email, mailPassword, config.getTransferErrorTimes(),

@@ -19,6 +19,7 @@ public class TransferPageTask {
 
   private static Logger logger = LoggerFactory.getLogger(TransferPageTask.class);
   private static String URL = HostConfig.HOST + "transfers";
+  private static int tryTime = 10;
 
   public static TransferPageData execute(int row) {
     try {
@@ -26,19 +27,15 @@ public class TransferPageTask {
           .get(CrawlMeta.getNewInstance(TransferPageTask.class, URL), new CrawlHttpConf());
       Document doc = Jsoup.parse(response);
       TransferPageData data = new TransferPageData(doc);
-      if (!data.isActive()) {
-        logger.info("钱包为空" + data.toString());
-        TransferUserFilterUtil.filterAndUpdateFlag(row, "1", "钱包为空");
-      }
-      if (!data.walletAmont()) {
-        logger.info("钱包金额为0" + data.toString());
-        TransferUserFilterUtil.filterAndUpdateFlag(row, "1", "钱包金额为0");
+      if (!data.isActive() && tryTime > 0) {
+        tryTime--;
+        return execute(row);
       }
       return data;
-    } catch (IOException e) {
-      TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "网络异常");
-      return new TransferPageData(null);
+    } catch (Exception e) {
+
     }
+    return null;
 
   }
 

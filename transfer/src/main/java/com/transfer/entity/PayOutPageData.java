@@ -1,6 +1,7 @@
 package com.transfer.entity;
 
 import com.google.common.collect.Lists;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,7 +56,8 @@ public class PayOutPageData {
           String walletId = e.val();
           Double amount = Double.valueOf(e.text().substring(e.text().indexOf("$") + 1, e.text().length()));
           return new PayOutWallet(walletId, amount);
-        }).collect(Collectors.toList());
+        }).sorted(Comparator.comparing(PayOutWallet::getAmount).reversed())
+        .collect(Collectors.toList());
 
     Element authTokenElement = doc.select("form[id=new_partition_cashout_partition]")
         .select("input[name=authenticity_token]").first();
@@ -77,13 +79,9 @@ public class PayOutPageData {
     if (doc == null) {
       return false;
     }
-    if (StringUtils.isBlank(this.userAccountId)) {
-      return false;
-    }
     if (CollectionUtils.isEmpty(this.payOutWallets)) {
       return false;
     }
-//    return this.ableWalletSize > 0;
     return true;
   }
 

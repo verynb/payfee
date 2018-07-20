@@ -54,7 +54,7 @@ public class HttpUtils {
 
   private static RequestConfig config = RequestConfig
       .custom()
-      .setRedirectsEnabled(false)
+      .setRedirectsEnabled(true)
       .setSocketTimeout(TIME_OUT)
       .setConnectTimeout(TIME_OUT)
       .setConnectionRequestTimeout(TIME_OUT)

@@ -59,12 +59,12 @@ public class PayOutTask {
         PayOutUserFilterUtil.filterAndUpdateFlag(index, "1", "提现成功");
         return GsonUtil.jsonToObject(response, PayOutResult.class);
       } else {
-        logger.info("未知错误");
-        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", "未知错误");
+        logger.info("response");
+        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", GsonUtil.jsonToObject(response, PayOutResult.class).getError());
         return new PayOutResult("error", "unkown");
       }
     } catch (IOException e) {
-      logger.info("转账请求异常:" + e.getMessage());
+      logger.info("提现请求异常:" + e.getMessage());
       PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", "网络异常");
       return new PayOutResult("error", "500");
     }

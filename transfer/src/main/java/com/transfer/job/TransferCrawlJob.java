@@ -74,14 +74,20 @@ public class TransferCrawlJob extends AbstractJob {
     //登录成功
     transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
         this.userInfo.getTransferTo());
-}
+  }
 
   /**
    * 执行转账功能
    */
   private void transfer(String email, String mailPassword, String transferTo) {
     TransferPageData getTransferPage = TransferPageTask.execute(userInfo.getRow());
-    if (!getTransferPage.isActive()) {
+    if (getTransferPage == null || !getTransferPage.isActive()) {
+      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "抓取转账页面数据失败");
+      return;
+    }
+    if (!getTransferPage.walletAmont()) {
+      logger.info("钱包金额为0[" + getTransferPage.toString() + "]");
+      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "钱包金额为0");
       return;
     }
     logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
