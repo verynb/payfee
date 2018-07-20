@@ -137,8 +137,8 @@ public class RequestPayoutJob extends AbstractJob {
       }
     }
     logger.info("抓取提现页面数据成功[" + getTransferPage.toString() + "]");
-    PayOutWallet wallet = getTransferPage.getPayOutWallets().get(0);
-    /*PayOutWallet wallet = getTransferPage.getPayOutWallets()
+//    PayOutWallet wallet = getTransferPage.getPayOutWallets().get(0);
+    PayOutWallet wallet = getTransferPage.getPayOutWallets()
         .stream()
         .filter(t -> t.getAmount() > mount)
         .findFirst().orElse(null);
@@ -147,7 +147,7 @@ public class RequestPayoutJob extends AbstractJob {
       //todo 会写失败日志
       PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "提现金额小于100");
       return;
-    }*/
+    }
     List<MailTokenData> tokenData = FilterMailUtil
         .filterRequestMails(getTransferPage.getAuthToken(), "", userInfo.getAccount(),
             email, mailPassword, config.getTransferErrorTimes(),

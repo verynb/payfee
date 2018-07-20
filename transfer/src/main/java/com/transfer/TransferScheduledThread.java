@@ -8,6 +8,8 @@ import com.transfer.load.LoadTransferData;
 import com.transfer.load.TransferUserFilterUtil;
 import config.ThreadConfig;
 import identity.IdentityCheck;
+import identity.LocationConfig;
+import identity.XmlReader;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
@@ -27,21 +29,41 @@ public class TransferScheduledThread {
 
   private static String version = "1.3";
 
+  private static String location = "qita";
+  private static String pName = "收分";
+
   private static final ThreadConfig config = new ThreadConfig(2, 10, 100);
 
-  public static String getVersionData() {
-    return new DateTime().getMillis() + "-" + version;
+  private static LocationConfig locationConfig = null;
+
+  static {
+    logger.info("开始加载分区配置信息,当前应用[" + pName + "]当前分区[" + location + "],当前版本[" + version + "]");
+    locationConfig = XmlReader.getConfig(location, pName);
+    if (locationConfig != null) {
+      logger.info("加载分区配置信息成功应用启动。。。");
+    } else {
+      logger.info("加载分区配置信息失败。。。");
+      System.out.println("输入任意结束");
+      Scanner scan = new Scanner(System.in);
+      String read = scan.nextLine();
+      while (StringUtils.isBlank(read)) {
+
+      }
+      System.exit(0);
+    }
   }
 
+
   public static void main(String[] args) {
-//    IdentityCheck.checkVersion(version);
-//    IdentityCheck.checkIdentity();
-    logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
+    IdentityCheck.checkIdentity(locationConfig.getTimelimit());
+    IdentityCheck.checkVersion(version, locationConfig.getVer());
+    IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadTransferData.loadUserInfoData("./account1.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < TransferUserFilterUtil.users.size(); i++) {
-      scheduledThreadPool.schedule(new TransferCrawlJob(TransferUserFilterUtil.users.get(i), config), 0, TimeUnit.SECONDS);
+      scheduledThreadPool
+          .schedule(new TransferCrawlJob(TransferUserFilterUtil.users.get(i), config), 0, TimeUnit.SECONDS);
     }
     scheduledThreadPool.shutdown();
     while (true) {
