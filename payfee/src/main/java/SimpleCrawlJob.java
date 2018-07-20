@@ -53,8 +53,7 @@ public class SimpleCrawlJob extends AbstractJob {
    */
   @Override
   public void doFetchPage() throws Exception {
-    LoginResult loginResult = LoginTask.tryTimes(config.getTransferErrorTimes(),
-        config.getThreadspaceTime(),
+    LoginResult loginResult = LoginTask.tryTimes(
         userName,
         password);
     if (!loginResult.isActive()) {

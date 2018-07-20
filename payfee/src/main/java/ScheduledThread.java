@@ -26,8 +26,8 @@ public class ScheduledThread {
   private static final ThreadConfig config = new ThreadConfig(2, 10, 50);
 
   public static void main(String[] args) {
-    IdentityCheck.checkVersion(version);
-    IdentityCheck.checkIdentity();
+    /*IdentityCheck.checkVersion(version);
+    IdentityCheck.checkIdentity();*/
     logger.info("[version=" + version + "] [" + new DateTime().toString("yyyy-MM-dd") + "]应用启动。。。");
     LoadData.loadUserInfoData(USER_PATH).forEach(u -> UserInfoFilterUtil.users.add(u));
     ScheduledThread s = new ScheduledThread();
