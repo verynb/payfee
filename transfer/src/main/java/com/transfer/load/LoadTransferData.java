@@ -45,7 +45,7 @@ public class LoadTransferData {
             row.getField("tpassword"),
             row.getField("tmail"),
             row.getField("tmailpassword"),
-            row.getField("ruser"),
+            Lists.newArrayList(row.getField("ruser")),
             row.getField("flag"),
             row.getField("flagMessage"));
         userInfos.add(userInfo);
@@ -82,7 +82,7 @@ public class LoadTransferData {
                 + info.getPassword().toString() + ","
                 + info.getEmail().toString() + ","
                 + info.getMailPassword().toString() + ","
-                + info.getTransferTo().toString() + ","
+                + info.getTransferTo().get(0).toString() + ","
                 + Optional.ofNullable(info.getFlag()).orElse("0").toString() + ","
                 + Optional.ofNullable(info.getFlagMessage()).orElse("未知错误").toString() + "\r\n");
         writer.write(str.toString());

@@ -27,19 +27,21 @@ public class ImapMailToken {
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
   public static List<MailTokenData> filterMailsForIsNew(String userName, String mail,
-      String password, SearchTerm searchTerm,String tokenType) {
+      String password, SearchTerm searchTerm, String tokenType) {
     Store store = ImapStoreFactory.getStore(mail);
     Folder folder = null;
     List<MailTokenData> dataList = Lists.newArrayList();
     try {
+      logger.info("开始连接邮件服务器");
       store.connect(mail, password);
       folder = store.getFolder("INBOX");
       folder.open(Folder.READ_WRITE);
+      logger.info("打开邮箱成功");
       List<Message> inboxMessages = Lists.newArrayList(Arrays.asList(folder.search(searchTerm)));
       dataList = inboxMessages.stream()
           .map(i -> new ReceiveEmail((MimeMessage) i))
           .filter(re -> re.filterSendUser(userName))
-          .filter(re ->re.filterSubject(tokenType))
+          .filter(re -> re.filterSubject(tokenType))
           .map(re -> re.mailTokenData())
           .sorted(Comparator.comparing(MailTokenData::getDate).reversed())
           .collect(Collectors.toList());

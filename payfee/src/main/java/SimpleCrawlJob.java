@@ -58,17 +58,14 @@ public class SimpleCrawlJob extends AbstractJob {
         password);
     if (!loginResult.isActive()) {
       logger.info("用户[" + userName + "]登录失败");
-      UserInfoFilterUtil.filterAndUpdateFlag(index, "-2b","用户[" + userName + "]登录失败");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "0","用户[" + userName + "]登录失败");
       return;
     }
-    logger.info("用户[" + userName + "]登录成功");
-    logger.info(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000+"ms后开始判断是否需要续期");
-    Thread.sleep(RandomUtil.ranNum(config.getThreadspaceTime()) * 1000);
     logger.info("开始判断是否需要续期");
     LoginSuccessResult successResult = LoginSuccessTask.execute();
     if (!successResult.isRenewal()) {
       logger.info("用户[" + userName + "]不需要续期");
-      UserInfoFilterUtil.filterAndUpdateFlag(index, "0b","用户[" + userName + "]不需要续期");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "1","用户[" + userName + "]不需要续期");
       return;
     }
     logger.info("用户[" + userName + "]需要续期");
@@ -90,12 +87,12 @@ public class SimpleCrawlJob extends AbstractJob {
         return;
       } else {
         logger.info("用户[" + userName + "]续期失败");
-        UserInfoFilterUtil.filterAndUpdateFlag(index, "2b","用户[" + userName + "]续期失败");
+        UserInfoFilterUtil.filterAndUpdateFlag(index, "0","用户[" + userName + "]续期失败");
         return;
       }
     } else {
       logger.info("用户[" + userName + "]续期余额不足");
-      UserInfoFilterUtil.filterAndUpdateFlag(index, "1b","用户[" + userName + "]续期余额不足");
+      UserInfoFilterUtil.filterAndUpdateFlag(index, "-1","用户[" + userName + "]续期余额不足");
       return;
     }
 

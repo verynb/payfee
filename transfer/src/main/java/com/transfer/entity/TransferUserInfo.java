@@ -1,5 +1,6 @@
 package com.transfer.entity;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class TransferUserInfo {
   private String password;
   private String email;
   private String mailPassword;
-  private String transferTo;
+  private List<String> transferTo;
   private String flag;
   private String flagMessage;
 

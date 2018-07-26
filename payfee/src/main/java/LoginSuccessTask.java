@@ -1,8 +1,10 @@
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
+import com.bit.network.HostConfig;
 import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
 import com.bit.network.RandomUtil;
+import java.io.IOException;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,22 +20,17 @@ import login.task.LoginAuthTokenTask;
 public class LoginSuccessTask {
 
   private static Logger logger = LoggerFactory.getLogger(LoginSuccessTask.class);
-  private static String URL = "https://www.bitbackoffice.com";
+  private static String URL = HostConfig.HOST;
 
   public static LoginSuccessResult execute() {
 
-    HttpResult response = null;
     try {
-      response = HttpUtils.doGet(CrawlMeta.getNewInstance(LoginAuthTokenTask.class, URL), new CrawlHttpConf());
-      Thread.sleep(RandomUtil.ranNum(1 * 1000));
-      Document doc = Jsoup.parse(EntityUtils.toString(response.getResponse().getEntity()));
+      String response = HttpUtils.get(CrawlMeta.getNewInstance(LoginAuthTokenTask.class, URL), new CrawlHttpConf());
+      Document doc = Jsoup.parse(response);
       return new LoginSuccessResult(200, doc, "success");
-    } catch (Exception e) {
+    } catch (IOException e) {
       logger.info("登录后请求异常" + e.getMessage());
       return new LoginSuccessResult(500, null, e.getMessage());
-    } finally {
-      response.getHttpGet().releaseConnection();
-      response.getHttpClient().getConnectionManager().shutdown();
     }
   }
 }

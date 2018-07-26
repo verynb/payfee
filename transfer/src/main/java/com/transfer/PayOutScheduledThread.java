@@ -2,6 +2,7 @@ package com.transfer;
 
 import com.bit.network.RandomUtil;
 import com.google.common.collect.Lists;
+import com.mail.support.ImapMailStore;
 import com.transfer.entity.PayOutUserInfo;
 import com.transfer.entity.TransferUserInfo;
 import com.transfer.job.RequestPayoutJob;
@@ -62,6 +63,8 @@ public class PayOutScheduledThread {
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadPayoutData.loadUserInfoData("./account.csv").forEach(u -> PayOutUserFilterUtil.users.add(u));
+    logger.info("开始初始化邮箱连接池");
+    ImapMailStore.initImapMailStore();
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < PayOutUserFilterUtil.users.size(); i++) {
       scheduledThreadPool.schedule(new RequestPayoutJob(PayOutUserFilterUtil.users.get(i), config),

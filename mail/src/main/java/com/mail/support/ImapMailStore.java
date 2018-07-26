@@ -25,7 +25,7 @@ public class ImapMailStore {
 
   private static final Map<String, Store> storeMap = new ConcurrentHashMap<>(3);
 
-  static {
+  public static void initImapMailStore() {
     HOSTS.forEach(host -> {
       logger.info("INIT HOST[" + host + "]");
       storeMap.putIfAbsent(getImapPrivoder(host), getStore(host));
@@ -33,7 +33,7 @@ public class ImapMailStore {
   }
 
   public static Store getStoreFromCache(String key) {
-    return storeMap.putIfAbsent(key, getStore(key));
+    return storeMap.get(key);
   }
 
   private static Store getStore(String host) {

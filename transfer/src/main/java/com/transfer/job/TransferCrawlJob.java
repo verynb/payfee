@@ -72,8 +72,9 @@ public class TransferCrawlJob extends AbstractJob {
       return;
     }
     //登录成功
-    transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(),
-        this.userInfo.getTransferTo());
+    this.userInfo.getTransferTo().forEach(u -> {
+      transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(), u);
+    });
   }
 
   /**

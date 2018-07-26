@@ -35,7 +35,7 @@ public class GetReceiverTask {
     return headMap;
   }
 
-  public static UserInfo execute(String userName,int row){
+  public static UserInfo execute(String userName, int row) {
     try {
       logger.info("开始获取转出账户[" + userName + "]信息");
       if (receiverCache.containsKey(userName)) {
@@ -48,10 +48,13 @@ public class GetReceiverTask {
         if (!userInfo.getResponse()) {
           logger.info("转账人[" + userName + "]不存在或者不存在于您的二进制树中");
           TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "转账人[" + userName + "]非下线");
+          return new UserInfo();
         }
-        return receiverCache.putIfAbsent(userName, userInfo);
+        receiverCache.putIfAbsent(userName, userInfo);
+        return userInfo;
       }
-    }catch (IOException e){
+    } catch (Exception e) {
+      logger.info("获取转出账户[" + userName + "]信息失败");
       TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "网络异常");
       return new UserInfo();
     }
