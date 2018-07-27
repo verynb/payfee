@@ -26,7 +26,7 @@ public class ImapMailToken {
 
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
-  public static List<MailTokenData> filterMailsForIsNew(String userName, String mail,
+  public static  List<MailTokenData> filterMailsForIsNew(String userName, String mail,
       String password, SearchTerm searchTerm, String tokenType) {
     Store store = ImapStoreFactory.getStore(mail);
     Folder folder = null;

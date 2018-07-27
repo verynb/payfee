@@ -1,9 +1,6 @@
 package com.transfer;
 
-import com.bit.network.RandomUtil;
-import com.google.common.collect.Lists;
 import com.mail.support.ImapMailStore;
-import com.transfer.entity.TransferUserInfo;
 import com.transfer.job.TransferCrawlJob;
 import com.transfer.load.LoadTransferData;
 import com.transfer.load.TransferUserFilterUtil;
@@ -11,13 +8,11 @@ import config.ThreadConfig;
 import identity.IdentityCheck;
 import identity.LocationConfig;
 import identity.XmlReader;
-import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +23,11 @@ public class TransferScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
 
-  private static String version = "1.3";
+  private static String version = "1.4";
 
   private static String pName = "收分";
 
-  private static final String USER_PATH = "./account1.csv";
+  private static final String USER_PATH = "./收分.csv";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 

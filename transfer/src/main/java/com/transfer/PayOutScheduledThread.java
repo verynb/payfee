@@ -36,7 +36,7 @@ public class PayOutScheduledThread {
 
   private static String pName = "提现";
 
-  private static final String USER_PATH = "./account.csv";
+  private static final String USER_PATH = "./提现.csv";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 

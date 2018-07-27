@@ -1,6 +1,7 @@
 package load;
 
 import com.google.common.collect.Lists;
+import com.mail.api.TransferUserInfo;
 import de.siegmar.fastcsv.reader.CsvContainer;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.CsvRow;
@@ -13,17 +14,18 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mail.api.TransferUserInfo;
 
 @Slf4j
 public class LoadData {
 
   private static Logger logger = LoggerFactory.getLogger(LoadData.class);
+  private static String HEADER = "";
 
   public static List<TransferUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
@@ -36,26 +38,36 @@ public class LoadData {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
-        double account = row.getField("transferAmount") == null ? 200 : Double.valueOf(row.getField("transferAmount"));
-        i++;
-        TransferUserInfo userInfo = new TransferUserInfo(
-            row.getField("userName"),
-            row.getField("password"),
-            row.getField("puserName"),
-            row.getField("ppassword"),
-            row.getField("pmail"),
-            row.getField("pmailPassword"),
-            account,
-            row.getField("flag"),
-            row.getField("flagMessage"),
-            i
-        );
-        if (userInfo.filterUserInfo()) {
-          userInfos.add(userInfo);
+        double seven = row.getField(6) == null ? 200 : Double.valueOf(row.getField(6));
+        if (i++ == 0) {
+          String one = row.getField(0);
+          String two = row.getField(1);
+          String three = row.getField(2);
+          String four = row.getField(3);
+          String five = row.getField(4);
+          String six = row.getField(5);
+          HEADER =
+              one + "," + two + "," + three + "," + four + "," + five + "," + six + "," + String.valueOf(seven) + ","
+                  + "结果标识,结果描述\r\n";
+        } else {
+          TransferUserInfo userInfo = new TransferUserInfo(
+              row.getField(0),
+              row.getField(1),
+              row.getField(2),
+              row.getField(3),
+              row.getField(4),
+              row.getField(5),
+              seven,
+              "", "",
+              i
+          );
+          if (userInfo.filterUserInfo()) {
+            userInfos.add(userInfo);
+          }
         }
       }
     } catch (IOException e) {
-      logger.info("加载用户数据失败,请检查account.csv格式是否正确");
+      logger.info("加载用户数据失败,请检查" + filePath + "格式是否正确");
       System.out.println("输入任意结束:");
       Scanner scan = new Scanner(System.in);
       String read = scan.nextLine();
@@ -68,13 +80,12 @@ public class LoadData {
   }
 
 
-  public static void writeResult(final List<TransferUserInfo> userInfos) {
+  public static void writeResult(final List<TransferUserInfo> userInfos, String filePath) {
     try {
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account.csv")), "UTF-8"));
-      String header = "userName,password,puserName,ppassword,pmail,pmailPassword,transferAmount,flag,flagMessage\r\n";
-      writer.write(header);
+              new FileOutputStream(new File(filePath)), StandardCharsets.UTF_8));
+      writer.write(HEADER);
       for (int i = 0; i < userInfos.size(); i++) {
         TransferUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();
@@ -85,8 +96,8 @@ public class LoadData {
             + info.getPmail().toString() + ","
             + info.getPmailPassword().toString() + ","
             + info.getTransferAmount() + ","
-            + info.getFlag().toString() + ","
-            + info.getFlagMessage().toString() + "\r\n");
+            + Optional.ofNullable(info.getFlag()).orElse("0").toString() + ","
+            + Optional.ofNullable(info.getFlagMessage()).orElse("未知错误").toString() + "\r\n");
         writer.write(str.toString());
         writer.flush();
       }
@@ -94,11 +105,5 @@ public class LoadData {
     } catch (IOException e) {
       e.printStackTrace();
     }
-  }
-
-  public static int countResult(final List<TransferUserInfo> userInfos, String flag) {
-    return (int) userInfos.stream()
-        .filter(u -> u.getFlag().equals(flag))
-        .count();
   }
 }

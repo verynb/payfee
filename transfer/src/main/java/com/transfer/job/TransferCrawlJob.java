@@ -86,7 +86,7 @@ public class TransferCrawlJob extends AbstractJob {
       }
       if (!getTransferPage.walletAmont()) {
         logger.info("钱包金额为0[" + getTransferPage.toString() + "]");
-        TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "钱包金额为0");
+        TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "转账成功");
         return;
       }
       logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");

@@ -1,12 +1,10 @@
 package com.mail.support;
 
-import com.bit.network.GetNetworkTime;
 import com.bit.network.RandomUtil;
 import com.google.common.collect.Lists;
 import com.mail.api.MailTokenData;
 import com.mail.api.SendMailResult;
 import com.mail.task.SendMailTask;
-import java.io.IOException;
 import java.util.List;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
@@ -41,7 +39,7 @@ public class FilterMailUtil {
     return comparisonAndTerm;
   }
 
-  public static List<MailTokenData> filterTransferMails(String sendMailToken, String userId,
+  public static  List<MailTokenData> filterTransferMails(String sendMailToken, String userId,
       String userName, String mail, String password,
       int tryTimes, int space) {
 
@@ -52,7 +50,7 @@ public class FilterMailUtil {
     try {
       for (int i = 1; i <= tryTimes; i++) {
 
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 8000;
+        long tryMailSpace = 5000;
         logger.info("等待" + tryMailSpace + "ms读取邮件");
         Thread.sleep(tryMailSpace);
         logger.info("开始读取邮件[" + mail + "]");

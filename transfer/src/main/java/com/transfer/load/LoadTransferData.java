@@ -27,9 +27,11 @@ public class LoadTransferData {
 
   private static Logger logger = LoggerFactory.getLogger(LoadTransferData.class);
 
+  private static String HEADER = "";
+
   public static List<TransferUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
-    csvReader.setContainsHeader(true);
+    csvReader.setContainsHeader(false);
     CsvContainer csv = null;
     List<TransferUserInfo> userInfos = Lists.newArrayList();
     try {
@@ -38,21 +40,28 @@ public class LoadTransferData {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
-        i++;
-        String rUser = row.getField("ruser");
-        TransferUserInfo userInfo = new TransferUserInfo(
-            i,
-            row.getField("tuser"),
-            row.getField("tpassword"),
-            row.getField("tmail"),
-            row.getField("tmailpassword"),
-            Lists.newArrayList(rUser, rUser, rUser),
-            row.getField("flag"),
-            row.getField("flagMessage"));
-        userInfos.add(userInfo);
+        if (i++ == 0) {
+          String one = row.getField(0);
+          String two = row.getField(1);
+          String three = row.getField(2);
+          String four = row.getField(3);
+          String five = row.getField(4);
+          HEADER = one + "," + two + "," + three + "," + four + "," + five + "," + "结果标识,结果描述\r\n";
+        } else {
+          String rUser = row.getField(4);
+          TransferUserInfo userInfo = new TransferUserInfo(
+              i,
+              row.getField(0),
+              row.getField(1),
+              row.getField(2),
+              row.getField(3),
+              Lists.newArrayList(rUser, rUser, rUser),
+              "", "");
+          userInfos.add(userInfo);
+        }
       }
     } catch (IOException e) {
-      logger.info("加载用户数据失败,请检查account.csv格式是否正确");
+      logger.info("加载用户数据失败,请检查" + filePath + "格式是否正确");
       System.out.println("输入任意结束:");
       Scanner scan = new Scanner(System.in);
       String read = scan.nextLine();
@@ -65,16 +74,13 @@ public class LoadTransferData {
   }
 
 
-  public static void writeResult(List<TransferUserInfo> userInfos,String userPath) {
+  public static void writeResult(List<TransferUserInfo> userInfos, String userPath) {
     try {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
               new FileOutputStream(new File(userPath)), StandardCharsets.UTF_8));
-
-      FileWriter fw = new FileWriter("./account.csv");
-      String header = "tuser,tpassword,tmail,tmailpassword,ruser,flag,flagMessage\r\n";
-      writer.write(header);
+      writer.write(HEADER);
       for (int i = 0; i < userInfos.size(); i++) {
         TransferUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();

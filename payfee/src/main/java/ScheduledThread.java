@@ -30,7 +30,7 @@ public class ScheduledThread {
   private static String version = "1.0";
   private static int tryTime = 5;
   private static String pName = "续期";
-  private static final String USER_PATH = "./account.csv";
+  private static final String USER_PATH = "./续期.csv";
   private static final ThreadConfig config = new ThreadConfig(2, 10, 50);
 
   private static LocationConfig locationConfig = null;
@@ -79,7 +79,7 @@ public class ScheduledThread {
     ScheduledThread s = new ScheduledThread();
     s.generateRenewal(UserInfoFilterUtil.users);
     s.tryTime();
-    LoadData.writeResult(UserInfoFilterUtil.users);
+    LoadData.writeResult(UserInfoFilterUtil.users,USER_PATH);
     long failueCount = UserInfoFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
         .filter(u -> u.getFlag().equals("0")).count();

@@ -28,6 +28,8 @@ public class LoadPayoutData {
 
   private static Logger logger = LoggerFactory.getLogger(LoadPayoutData.class);
 
+  private static String HEADER = "";
+
   public static List<PayOutUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
     csvReader.setContainsHeader(true);
@@ -39,21 +41,30 @@ public class LoadPayoutData {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
-        i++;
-        PayOutUserInfo userInfo = new PayOutUserInfo(
-            i,
-            row.getField("user"),
-            row.getField("pwd"),
-            row.getField("mail"),
-            row.getField("mail_pwd"),
-            row.getField("account_name"),
-            row.getField("wallet_add"),
-            row.getField("flag"),
-            row.getField("flagMessage"));
-        userInfos.add(userInfo);
+        if (i++ == 0) {
+          String one = row.getField(0);
+          String two = row.getField(1);
+          String three = row.getField(2);
+          String four = row.getField(3);
+          String five = row.getField(4);
+          String six = row.getField(5);
+          HEADER = one + "," + two + "," + three + "," + four + "," + five + "," + six + "," + "结果标识,结果描述\r\n";
+        } else {
+          PayOutUserInfo userInfo = new PayOutUserInfo(
+              i,
+              row.getField(0),
+              row.getField(1),
+              row.getField(2),
+              row.getField(3),
+              row.getField(4),
+              row.getField(5),
+              "",
+              "");
+          userInfos.add(userInfo);
+        }
       }
     } catch (IOException e) {
-      logger.info("加载用户数据失败,请检查account.csv格式是否正确");
+      logger.info("加载用户数据失败,请检查" + filePath + "格式是否正确");
       System.out.println("输入任意结束:");
       Scanner scan = new Scanner(System.in);
       String read = scan.nextLine();
@@ -66,16 +77,14 @@ public class LoadPayoutData {
   }
 
 
-  public static void writeResult(List<PayOutUserInfo> userInfos,String userPath) {
+  public static void writeResult(List<PayOutUserInfo> userInfos, String userPath) {
     try {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
               new FileOutputStream(new File(userPath)), StandardCharsets.UTF_8));
 
-      FileWriter fw = new FileWriter("./account.csv");
-      String header = "user,pwd,mail,mail_pwd,account_name,wallet_add,flag,flagMessage\r\n";
-      writer.write(header);
+      writer.write(HEADER);
       for (int i = 0; i < userInfos.size(); i++) {
         PayOutUserInfo info = userInfos.get(i);
         StringBuffer str = new StringBuffer();
