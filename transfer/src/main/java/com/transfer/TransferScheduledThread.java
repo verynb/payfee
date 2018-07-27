@@ -28,9 +28,8 @@ public class TransferScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
 
-  private static String version = "1.3";
+  private static String version = "1.4";
 
-  private static String location = "qita";
   private static String pName = "收分";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
@@ -38,12 +37,30 @@ public class TransferScheduledThread {
   private static LocationConfig locationConfig = null;
 
   static {
-    logger.info("开始加载分区配置信息,当前应用[" + pName + "]当前分区[" + location + "],当前版本[" + version + "]");
-    locationConfig = XmlReader.getConfig(location, pName);
-    if (locationConfig != null) {
+    logger.info("开始加载分区配置信息,当前应用[" + pName + "],当前版本[" + version + "]");
+    System.out.println("请输入用户名:");
+    Scanner scanUserName = new Scanner(System.in);
+    String readUserName = scanUserName.next();
+    while (StringUtils.isBlank(readUserName)) {
+    }
+    locationConfig = XmlReader.getConfig(readUserName, pName);
+    if(locationConfig != null && locationConfig.getName().equals("unkonwn")){
+      System.out.println("用户名错误");
+      System.out.println("输入任意结束");
+      Scanner scan = new Scanner(System.in);
+      String read = scan.nextLine();
+      while (StringUtils.isBlank(read)) {
+
+      }
+      System.exit(0);
+    }
+    if (locationConfig != null && !locationConfig.getName().equals("unkonwn")) {
       logger.info("加载分区配置信息成功应用启动。。。");
+      logger.info("开始初始化邮箱连接池");
+      ImapMailStore.initImapMailStore();
+      logger.info("初始化邮箱连接池成功");
     } else {
-      logger.info("加载分区配置信息失败。。。");
+      logger.info("未找到当前应用[" + pName + "]分区配置信息!");
       System.out.println("输入任意结束");
       Scanner scan = new Scanner(System.in);
       String read = scan.nextLine();
@@ -54,15 +71,12 @@ public class TransferScheduledThread {
     }
   }
 
-
   public static void main(String[] args) {
     IdentityCheck.checkIdentity(locationConfig.getTimelimit());
     IdentityCheck.checkVersion(version, locationConfig.getVer());
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
-    LoadTransferData.loadUserInfoData("./account1.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
-    logger.info("开始初始化邮箱连接池");
-    ImapMailStore.initImapMailStore();
+    LoadTransferData.loadUserInfoData("./account.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < TransferUserFilterUtil.users.size(); i++) {
       scheduledThreadPool

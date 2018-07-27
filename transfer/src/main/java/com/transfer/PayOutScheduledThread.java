@@ -32,8 +32,7 @@ public class PayOutScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(PayOutScheduledThread.class);
 
-  private static String version = "1.0";
-  private static String location = "qita";
+  private static String version = "1.1";
   private static String pName = "提现";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
@@ -41,12 +40,30 @@ public class PayOutScheduledThread {
   private static LocationConfig locationConfig = null;
 
   static {
-    logger.info("开始加载分区配置信息,当前应用[" + pName + "]当前分区[" + location + "],当前版本[" + version + "]");
-    locationConfig = XmlReader.getConfig(location, pName);
-    if (locationConfig != null) {
+    logger.info("开始加载分区配置信息,当前应用[" + pName + "],当前版本[" + version + "]");
+    System.out.println("请输入用户名:");
+    Scanner scanUserName = new Scanner(System.in);
+    String readUserName = scanUserName.next();
+    while (StringUtils.isBlank(readUserName)) {
+    }
+    locationConfig = XmlReader.getConfig(readUserName, pName);
+    if (locationConfig != null && locationConfig.getName().equals("unkonwn")) {
+      System.out.println("用户名错误");
+      System.out.println("输入任意结束");
+      Scanner scan = new Scanner(System.in);
+      String read = scan.nextLine();
+      while (StringUtils.isBlank(read)) {
+
+      }
+      System.exit(0);
+    }
+    if (locationConfig != null && !locationConfig.getName().equals("unkonwn")) {
       logger.info("加载分区配置信息成功应用启动。。。");
+      logger.info("开始初始化邮箱连接池");
+      ImapMailStore.initImapMailStore();
+      logger.info("初始化邮箱连接池成功");
     } else {
-      logger.info("加载分区配置信息失败。。。");
+      logger.info("未找到当前应用[" + pName + "]分区配置信息!");
       System.out.println("输入任意结束");
       Scanner scan = new Scanner(System.in);
       String read = scan.nextLine();
@@ -63,8 +80,6 @@ public class PayOutScheduledThread {
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadPayoutData.loadUserInfoData("./account.csv").forEach(u -> PayOutUserFilterUtil.users.add(u));
-    logger.info("开始初始化邮箱连接池");
-    ImapMailStore.initImapMailStore();
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < PayOutUserFilterUtil.users.size(); i++) {
       scheduledThreadPool.schedule(new RequestPayoutJob(PayOutUserFilterUtil.users.get(i), config),

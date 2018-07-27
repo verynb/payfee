@@ -27,9 +27,9 @@ public class XmlReader {
       Document document = getDoc();
       List<LocationConfig> configs = getProject(document, pName);
       return configs.stream()
-          .filter(c -> c.getName().equals(location))
+          .filter(c -> location.contains(c.getName()))
           .findFirst()
-          .orElse(null);
+          .orElse(new LocationConfig("unkonwn", "unkonwn", "unkonwn", "unkonwn"));
     } catch (Exception e) {
       return null;
     }

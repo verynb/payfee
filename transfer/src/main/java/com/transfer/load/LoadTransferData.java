@@ -69,9 +69,9 @@ public class LoadTransferData {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account1.csv")), StandardCharsets.UTF_8));
+              new FileOutputStream(new File("./account.csv")), StandardCharsets.UTF_8));
 
-      FileWriter fw = new FileWriter("./account1.csv");
+      FileWriter fw = new FileWriter("./account.csv");
       String header = "tuser,tpassword,tmail,tmailpassword,ruser,flag,flagMessage\r\n";
       writer.write(header);
       for (int i = 0; i < userInfos.size(); i++) {
