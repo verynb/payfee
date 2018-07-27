@@ -36,10 +36,14 @@ public class TransferCrawlJob extends AbstractJob {
   //发邮件与收邮件时间间隔，默认10s
   private ThreadConfig config;
 
+  private Double transferAmonut;
+
   public TransferCrawlJob(TransferUserInfo userInfo,
-      ThreadConfig config) {
+      ThreadConfig config,
+      Double transferAmonut) {
     this.userInfo = userInfo;
     this.config = config;
+    this.transferAmonut = transferAmonut;
   }
 
   @Override
@@ -71,28 +75,53 @@ public class TransferCrawlJob extends AbstractJob {
       TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "登录失败");
       return;
     }
-    //登录成功
-    this.userInfo.getTransferTo().forEach(u -> {
-      transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(), u);
-    });
+    //登录成功,执行转账
+    for (int i = 0; i < this.userInfo.getTransferTo().size(); i++) {
+      String u = this.userInfo.getTransferTo().get(i);
+      logger.info("transferTo[" + u + "]");
+      TransferPageData getTransferPage = TransferPageTask.execute(userInfo.getRow());
+      if (getTransferPage == null || !getTransferPage.isActive()) {
+        TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "抓取转账页面数据失败");
+        return;
+      }
+      if (!getTransferPage.walletAmont()) {
+        logger.info("钱包金额为0[" + getTransferPage.toString() + "]");
+        TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "钱包金额为0");
+        return;
+      }
+      logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
+      transfer(this.userInfo.getEmail(), this.userInfo.getMailPassword(), u, getTransferPage);
+      if (this.transferAmonut == null) {
+        logger.info("休眠2s处理下个钱包");
+      } else {
+        logger.info("休眠2s处理下个账户");
+      }
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   /**
    * 执行转账功能
    */
-  private void transfer(String email, String mailPassword, String transferTo) {
-    TransferPageData getTransferPage = TransferPageTask.execute(userInfo.getRow());
-    if (getTransferPage == null || !getTransferPage.isActive()) {
-      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "抓取转账页面数据失败");
+  private void transfer(String email, String mailPassword, String transferTo, TransferPageData getTransferPage) {
+
+    TransferWallet wallet = null;
+    if (this.transferAmonut == null) {
+      wallet = getTransferPage.getTransferWallets().get(0);
+    } else {
+      wallet = getTransferPage.getTransferWallets().stream()
+          .filter(p -> p.getAmount() >= this.transferAmonut)
+          .findFirst().orElse(null);
+    }
+    if (wallet == null) {
+      logger.info("转账余额不足");
+      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "转账余额不足");
       return;
     }
-    if (!getTransferPage.walletAmont()) {
-      logger.info("钱包金额为0[" + getTransferPage.toString() + "]");
-      TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "钱包金额为0");
-      return;
-    }
-    logger.info("抓取转账页面数据成功[" + getTransferPage.toString() + "]");
-    TransferWallet wallet = getTransferPage.getTransferWallets().get(0);
     UserInfo receiverInfo = GetReceiverTask.execute(transferTo, userInfo.getRow());
     if (!receiverInfo.isActive()) {
       return;
@@ -111,12 +140,11 @@ public class TransferCrawlJob extends AbstractJob {
       return;
     } else {
       logger.info("邮件解析成功");
-      transferByToken(email, mailPassword, getTransferPage, wallet, transferTo, receiverInfo, tokenData);
+      transferByToken(getTransferPage, wallet, transferTo, receiverInfo, tokenData);
     }
   }
 
-  private void transferByToken(String email,
-      String mailPassword,
+  private void transferByToken(
       TransferPageData getTransferPage,
       TransferWallet wallet,
       String transferTo,

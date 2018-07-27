@@ -39,13 +39,14 @@ public class LoadTransferData {
       int i = 0;
       for (CsvRow row : csv.getRows()) {
         i++;
+        String rUser = row.getField("ruser");
         TransferUserInfo userInfo = new TransferUserInfo(
             i,
             row.getField("tuser"),
             row.getField("tpassword"),
             row.getField("tmail"),
             row.getField("tmailpassword"),
-            Lists.newArrayList(row.getField("ruser")),
+            Lists.newArrayList(rUser, rUser, rUser),
             row.getField("flag"),
             row.getField("flagMessage"));
         userInfos.add(userInfo);
@@ -64,12 +65,12 @@ public class LoadTransferData {
   }
 
 
-  public static void writeResult(List<TransferUserInfo> userInfos) {
+  public static void writeResult(List<TransferUserInfo> userInfos,String userPath) {
     try {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account.csv")), StandardCharsets.UTF_8));
+              new FileOutputStream(new File(userPath)), StandardCharsets.UTF_8));
 
       FileWriter fw = new FileWriter("./account.csv");
       String header = "tuser,tpassword,tmail,tmailpassword,ruser,flag,flagMessage\r\n";

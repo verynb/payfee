@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import load.LoadData;
 import org.apache.commons.collections.CollectionUtils;
@@ -107,9 +109,9 @@ public class ScheduledThread {
 
   private void generateTransfer(final List<TransferUserInfo> users) {
     List<TransferCrawlJob> jobs = TaskFactory.getTransferInstance(users, config);
-    ExecutorService service = Executors.newSingleThreadExecutor();
+    ScheduledExecutorService service = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     jobs.forEach(j -> {
-      service.execute(j);
+      service.schedule(j, 0, TimeUnit.SECONDS);
     });
     service.shutdown();
     while (true) {
@@ -120,9 +122,9 @@ public class ScheduledThread {
   }
 
   private void generateRenewal(final List<TransferUserInfo> users) {
-    ExecutorService service = Executors.newFixedThreadPool(config.getThreadPoolSize());
+    ScheduledExecutorService service = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     users.forEach(u -> {
-      service.execute(TaskFactory.getSimpleInstance(u, config));
+      service.schedule(TaskFactory.getSimpleInstance(u, config), 0, TimeUnit.SECONDS);
     });
     service.shutdown();
     while (true) {

@@ -66,12 +66,12 @@ public class LoadPayoutData {
   }
 
 
-  public static void writeResult(List<PayOutUserInfo> userInfos) {
+  public static void writeResult(List<PayOutUserInfo> userInfos,String userPath) {
     try {
 
       Writer writer = new BufferedWriter(
           new OutputStreamWriter(
-              new FileOutputStream(new File("./account.csv")), StandardCharsets.UTF_8));
+              new FileOutputStream(new File(userPath)), StandardCharsets.UTF_8));
 
       FileWriter fw = new FileWriter("./account.csv");
       String header = "user,pwd,mail,mail_pwd,account_name,wallet_add,flag,flagMessage\r\n";

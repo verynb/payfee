@@ -33,7 +33,10 @@ public class PayOutScheduledThread {
   private static Logger logger = LoggerFactory.getLogger(PayOutScheduledThread.class);
 
   private static String version = "1.1";
+
   private static String pName = "提现";
+
+  private static final String USER_PATH = "./account.csv";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 
@@ -79,7 +82,7 @@ public class PayOutScheduledThread {
     IdentityCheck.checkVersion(version, locationConfig.getVer());
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
-    LoadPayoutData.loadUserInfoData("./account.csv").forEach(u -> PayOutUserFilterUtil.users.add(u));
+    LoadPayoutData.loadUserInfoData(USER_PATH).forEach(u -> PayOutUserFilterUtil.users.add(u));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < PayOutUserFilterUtil.users.size(); i++) {
       scheduledThreadPool.schedule(new RequestPayoutJob(PayOutUserFilterUtil.users.get(i), config),
@@ -91,7 +94,7 @@ public class PayOutScheduledThread {
         break;
       }
     }
-    LoadPayoutData.writeResult(PayOutUserFilterUtil.users);
+    LoadPayoutData.writeResult(PayOutUserFilterUtil.users, USER_PATH);
     long successCount = PayOutUserFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
         .filter(u -> u.getFlag().equals("1")).count();

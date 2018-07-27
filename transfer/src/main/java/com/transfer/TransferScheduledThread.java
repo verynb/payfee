@@ -28,9 +28,11 @@ public class TransferScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
 
-  private static String version = "1.4";
+  private static String version = "1.3";
 
   private static String pName = "收分";
+
+  private static final String USER_PATH = "./account1.csv";
 
   private static final ThreadConfig config = new ThreadConfig(5, 10, 100);
 
@@ -44,7 +46,7 @@ public class TransferScheduledThread {
     while (StringUtils.isBlank(readUserName)) {
     }
     locationConfig = XmlReader.getConfig(readUserName, pName);
-    if(locationConfig != null && locationConfig.getName().equals("unkonwn")){
+    if (locationConfig != null && locationConfig.getName().equals("unkonwn")) {
       System.out.println("用户名错误");
       System.out.println("输入任意结束");
       Scanner scan = new Scanner(System.in);
@@ -76,11 +78,11 @@ public class TransferScheduledThread {
     IdentityCheck.checkVersion(version, locationConfig.getVer());
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
-    LoadTransferData.loadUserInfoData("./account.csv").forEach(u -> TransferUserFilterUtil.users.add(u));
+    LoadTransferData.loadUserInfoData(USER_PATH).forEach(u -> TransferUserFilterUtil.users.add(u));
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < TransferUserFilterUtil.users.size(); i++) {
       scheduledThreadPool
-          .schedule(new TransferCrawlJob(TransferUserFilterUtil.users.get(i), config), 0, TimeUnit.SECONDS);
+          .schedule(new TransferCrawlJob(TransferUserFilterUtil.users.get(i), config, null), 0, TimeUnit.SECONDS);
     }
     scheduledThreadPool.shutdown();
     while (true) {
@@ -88,7 +90,7 @@ public class TransferScheduledThread {
         break;
       }
     }
-    LoadTransferData.writeResult(TransferUserFilterUtil.users);
+    LoadTransferData.writeResult(TransferUserFilterUtil.users,USER_PATH);
     long successCount = TransferUserFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
         .filter(u -> u.getFlag().equals("1")).count();

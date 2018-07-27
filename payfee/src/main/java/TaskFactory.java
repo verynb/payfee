@@ -39,7 +39,7 @@ public class TaskFactory {
               d.getPpassword(), d.getPmail(), d.getPmailPassword(), transferTos, "", "");
         }).collect(Collectors.toList());
     return transferUserInfos.stream()
-        .map(userInfo -> new TransferCrawlJob(userInfo, config))
+        .map(userInfo -> new TransferCrawlJob(userInfo, config,200D))
         .collect(Collectors.toList());
   }
 
