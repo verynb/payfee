@@ -1,8 +1,13 @@
 package com.mail.api;
 
+import com.mail.support.ImapMailToken;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by yuanj on 2018/6/20.
@@ -19,6 +24,21 @@ public class UserInfoFilterUtil {
       filter.get().setFlag(flag);
       filter.get().setFlagMessage(message);
     }
+  }
+
+  public static void initMail() {
+    List<TransferUserInfo> filters = users.stream()
+        .filter(distinctByKey(u -> u.getPmail()))
+        .collect(Collectors.toList());
+    filters.forEach(f -> {
+      ImapMailToken.init(f.getPmail(), f.getPmailPassword());
+    });
+  }
+
+  public static <T> java.util.function.Predicate<T> distinctByKey(
+      Function<? super T, Object> keyExtractor) {
+    Map<Object, Boolean> map = new ConcurrentHashMap<>();
+    return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
   }
 
 }

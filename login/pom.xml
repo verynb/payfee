@@ -16,6 +16,11 @@
       <artifactId>util</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.payfee</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
 </project>

@@ -76,10 +76,11 @@ public class ScheduledThread {
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadData.loadUserInfoData(USER_PATH).forEach(u -> UserInfoFilterUtil.users.add(u));
+    UserInfoFilterUtil.initMail();
     ScheduledThread s = new ScheduledThread();
     s.generateRenewal(UserInfoFilterUtil.users);
     s.tryTime();
-    LoadData.writeResult(UserInfoFilterUtil.users,USER_PATH);
+    LoadData.writeResult(UserInfoFilterUtil.users, USER_PATH);
     long failueCount = UserInfoFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
         .filter(u -> u.getFlag().equals("0")).count();

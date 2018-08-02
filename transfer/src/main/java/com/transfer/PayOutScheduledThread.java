@@ -83,6 +83,7 @@ public class PayOutScheduledThread {
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadPayoutData.loadUserInfoData(USER_PATH).forEach(u -> PayOutUserFilterUtil.users.add(u));
+    PayOutUserFilterUtil.initMail();
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < PayOutUserFilterUtil.users.size(); i++) {
       scheduledThreadPool.schedule(new RequestPayoutJob(PayOutUserFilterUtil.users.get(i), config),
