@@ -39,7 +39,7 @@ public class FilterMailUtil {
     return comparisonAndTerm;
   }
 
-  public static  List<MailTokenData> filterTransferMails(String sendMailToken, String userId,
+  public static synchronized List<MailTokenData> filterTransferMails(String sendMailToken, String userId,
       String userName, String mail, String password,
       int tryTimes, int space) {
 
@@ -69,7 +69,7 @@ public class FilterMailUtil {
     return Lists.newArrayList();
   }
 
-  public static List<MailTokenData> filterRequestMails(String sendMailToken, String userId,
+  public static synchronized List<MailTokenData> filterRequestMails(String sendMailToken, String userId,
       String userName, String mail,
       String password, int tryTimes, int space) {
     SendMailResult sendMailResult = SendMailTask.tryExcute(sendMailToken, userId, space, TOKEN_TYPE_REQUEST_PAYOUT);
@@ -97,7 +97,7 @@ public class FilterMailUtil {
     return Lists.newArrayList();
   }
 
-  public static List<MailTokenData> filterAddMails(String sendMailToken, String userId,
+  public static synchronized List<MailTokenData> filterAddMails(String sendMailToken, String userId,
       String userName, String mail, String password, int tryTimes,
       int space) {
     SendMailResult sendMailResult = SendMailTask

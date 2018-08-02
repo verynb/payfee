@@ -66,7 +66,7 @@ public class SendMailTask {
   }
 
 
-  public static synchronized SendMailResult tryExcute(String token, String userId, long space, String type) {
+  public static  SendMailResult tryExcute(String token, String userId, long space, String type) {
     try {
       logger.info("开始发送邮件[" + userId + "]");
       SendMailResult result = execute(token, userId, type);

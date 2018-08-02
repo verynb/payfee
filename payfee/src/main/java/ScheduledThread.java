@@ -27,7 +27,7 @@ import com.mail.api.TransferUserInfo;
 public class ScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(ScheduledThread.class);
-  private static String version = "1.0";
+  private static String version = "1.1";
   private static int tryTime = 5;
   private static String pName = "续期";
   private static final String USER_PATH = "./续期.csv";

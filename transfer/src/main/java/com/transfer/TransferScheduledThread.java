@@ -23,7 +23,7 @@ public class TransferScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
 
-  private static String version = "1.4";
+  private static String version = "1.5";
 
   private static String pName = "收分";
 
@@ -74,6 +74,7 @@ public class TransferScheduledThread {
     IdentityCheck.checkPassword(3, locationConfig.getPassword());
     logger.info("开始加载用户数据");
     LoadTransferData.loadUserInfoData(USER_PATH).forEach(u -> TransferUserFilterUtil.users.add(u));
+    TransferUserFilterUtil.initMail();
     ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(config.getThreadPoolSize());
     for (int i = 0; i < TransferUserFilterUtil.users.size(); i++) {
       scheduledThreadPool

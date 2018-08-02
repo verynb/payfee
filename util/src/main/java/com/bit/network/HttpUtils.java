@@ -48,7 +48,7 @@ public class HttpUtils {
 
   private static Logger logger = LoggerFactory.getLogger(HttpUtils.class);
   // 默认超时时间：10s
-  private static final int TIME_OUT = 100000;
+  private static final int TIME_OUT = 10000;
   private static PoolingHttpClientConnectionManager cm = null;
 //  private static HttpRequestRetryHandler httpRequestRetryHandler = null;
 

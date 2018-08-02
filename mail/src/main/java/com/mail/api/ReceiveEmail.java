@@ -1,6 +1,5 @@
 package com.mail.api;
 
-import com.mail.support.ImapMailStore;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +25,7 @@ public class ReceiveEmail {
       this.getMailContent(this.mimeMessage);
       replaceBodyTex = replaceBlank(this.bodyText.toString());
     } catch (Exception e) {
-      e.printStackTrace();
+//      e.printStackTrace();
     }
   }
 
@@ -46,13 +45,13 @@ public class ReceiveEmail {
       result = mimeMessage.getSubject().equals(subject);
       logger.info("当前主题[" + result + "]");
     } catch (MessagingException e) {
-      e.printStackTrace();
+//      e.printStackTrace();
     }
     if (!result) {
       try {
         mimeMessage.setFlag(Flag.SEEN, false);
       } catch (MessagingException e) {
-        e.printStackTrace();
+//        e.printStackTrace();
       }
     }
     return result;
@@ -63,7 +62,7 @@ public class ReceiveEmail {
     try {
       sentDate = mimeMessage.getSentDate();
     } catch (MessagingException e) {
-      e.printStackTrace();
+//      e.printStackTrace();
     }
     return sentDate.getTime();
   }

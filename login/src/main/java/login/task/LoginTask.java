@@ -41,7 +41,7 @@ public class LoginTask {
         return new LoginResult(200, LoginExceptionConstance.LOGIN_SUCCESS);
       }
       if (code == 200) {
-        return new LoginResult(400,
+        return new LoginResult(201,
             LoginExceptionConstance.ACCOUNT_EXCEPETION);
       } else {
         return new LoginResult(code,
@@ -65,6 +65,9 @@ public class LoginTask {
     }
     LoginAuthTokenData data = LoginAuthTokenTask.execute();
     LoginResult result = execute(data.getResult(), userName, password);
+    if (result.getCode() == 201) {
+      return result;
+    }
     if (!result.isActive()) {
       try {
         Thread.sleep(2000L);

@@ -13,6 +13,7 @@ public class ImapStoreFactory {
 
   private static Logger logger = LoggerFactory.getLogger(ImapMailToken.class);
 
+
   public static Store getStore(String host) {
     return ImapMailStore.getStoreFromCache(parseHost(host));
   }
