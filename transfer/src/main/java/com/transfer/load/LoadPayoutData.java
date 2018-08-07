@@ -32,7 +32,7 @@ public class LoadPayoutData {
 
   public static List<PayOutUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
-    csvReader.setContainsHeader(true);
+    csvReader.setContainsHeader(false);
     CsvContainer csv = null;
     List<PayOutUserInfo> userInfos = Lists.newArrayList();
     try {

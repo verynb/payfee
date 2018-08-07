@@ -79,7 +79,7 @@ public class TransferCrawlJob extends AbstractJob {
     for (int i = 0; i < this.userInfo.getTransferTo().size(); i++) {
       String u = this.userInfo.getTransferTo().get(i);
       logger.info("transferTo[" + u + "]");
-      TransferPageData getTransferPage = TransferPageTask.execute(userInfo.getRow());
+      TransferPageData getTransferPage = TransferPageTask.execute();
       if (getTransferPage == null || !getTransferPage.isActive()) {
         TransferUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "0", "抓取转账页面数据失败");
         return;

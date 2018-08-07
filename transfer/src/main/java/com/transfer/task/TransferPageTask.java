@@ -5,7 +5,6 @@ import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
 import com.bit.network.HttpUtils;
 import com.transfer.entity.TransferPageData;
-import com.transfer.load.TransferUserFilterUtil;
 import java.io.IOException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,9 +18,9 @@ public class TransferPageTask {
 
   private static Logger logger = LoggerFactory.getLogger(TransferPageTask.class);
   private static String URL = HostConfig.HOST + "transfers";
-  private static int tryTime = 10;
+  private static int tryTime = 1000;
 
-  public static TransferPageData execute(int row) {
+  public static TransferPageData execute() {
     try {
       String response = HttpUtils
           .get(CrawlMeta.getNewInstance(TransferPageTask.class, URL), new CrawlHttpConf());
@@ -29,14 +28,18 @@ public class TransferPageTask {
       TransferPageData data = new TransferPageData(doc);
       if (!data.isActive() && tryTime > 0) {
         tryTime--;
-        return execute(row);
+        return execute();
       }
       return data;
-    } catch (Exception e) {
+    } catch (IOException e) {
+      if (tryTime > 0) {
+        tryTime--;
+        return execute();
+      } else {
+        return null;
+      }
 
     }
-    return null;
-
   }
 
 }

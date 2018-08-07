@@ -29,7 +29,7 @@ public class LoadData {
 
   public static List<TransferUserInfo> loadUserInfoData(String filePath) {
     CsvReader csvReader = new CsvReader();
-    csvReader.setContainsHeader(true);
+    csvReader.setContainsHeader(false);
     CsvContainer csv = null;
     List<TransferUserInfo> userInfos = Lists.newArrayList();
     try {

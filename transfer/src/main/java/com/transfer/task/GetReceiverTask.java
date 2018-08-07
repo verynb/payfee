@@ -53,7 +53,7 @@ public class GetReceiverTask {
         receiverCache.putIfAbsent(userName, userInfo);
         return userInfo;
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       logger.info("获取转出账户[" + userName + "]信息失败");
       TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "网络异常");
       return new UserInfo();

@@ -3,21 +3,9 @@ package com.transfer.task;
 import com.bit.network.CrawlHttpConf;
 import com.bit.network.CrawlMeta;
 import com.bit.network.HostConfig;
-import com.bit.network.HttpResult;
 import com.bit.network.HttpUtils;
-import com.bit.network.RandomUtil;
-import com.mail.api.MailTokenData;
-import com.mail.support.FilterMailUtil;
-import com.transfer.entity.AddBitAccountParam;
 import com.transfer.entity.PayOutPageData;
-import com.transfer.entity.PayOutUserInfo;
-import config.ThreadConfig;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -30,7 +18,7 @@ public class RequestPayoutPageTask {
 
   private static Logger logger = LoggerFactory.getLogger(RequestPayoutPageTask.class);
   private static String URL = HostConfig.HOST + "cashouts";
-  private static int tryTime = 20;
+  private static int tryTime = 1000;
 
   public static PayOutPageData execute(String walletName) {
     try {
@@ -45,8 +33,12 @@ public class RequestPayoutPageTask {
       }
       return data;
     } catch (IOException e) {
-      return new PayOutPageData(null, walletName);
+      if (tryTime > 0) {
+        tryTime--;
+        return execute(walletName);
+      } else {
+        return new PayOutPageData(null, walletName);
+      }
     }
-
   }
 }
