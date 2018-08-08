@@ -116,6 +116,9 @@ public class TransferCrawlJob extends AbstractJob {
       wallet = getTransferPage.getTransferWallets().stream()
           .filter(p -> p.getAmount() >= this.transferAmonut)
           .findFirst().orElse(null);
+      if (wallet != null) {
+        wallet.setAmount(this.transferAmonut);
+      }
     }
     if (wallet == null) {
       logger.info("转账余额不足");
@@ -159,6 +162,7 @@ public class TransferCrawlJob extends AbstractJob {
         receiverInfo.getUser_id()
     );
     logger.info("开始转账");
+    logger.info("转账金额[" + wallet.getAmount() + "]");
     logger.info("转账参数=" + param.toString());
     TransferTask.execute(param, userInfo.getRow());
     return;
