@@ -1,9 +1,7 @@
 package com.transfer.job;
 
-import com.bit.network.RandomUtil;
 import com.bit.network.SessionHolder;
 import com.mail.api.MailTokenData;
-import com.mail.api.UserInfoFilterUtil;
 import com.mail.support.FilterMailUtil;
 import com.mail.support.LoginResult;
 import com.transfer.entity.AddBitAccountParam;
@@ -15,15 +13,10 @@ import com.transfer.entity.PayOutWallet;
 import com.transfer.job.support.AbstractJob;
 import com.transfer.load.PayOutUserFilterUtil;
 import com.transfer.task.AddBitAccountTask;
-import com.transfer.task.CancelTokenTask;
 import com.transfer.task.PayOutTask;
 import com.transfer.task.RequestPayoutPageTask;
-import com.transfer.task.TransferUtil;
 import config.ThreadConfig;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.stream.Collectors;
 import login.task.LoginTask;
 import lombok.Getter;
 import lombok.Setter;

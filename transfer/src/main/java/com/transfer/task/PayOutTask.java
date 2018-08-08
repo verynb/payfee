@@ -60,7 +60,7 @@ public class PayOutTask {
         return GsonUtil.jsonToObject(response, PayOutResult.class);
       } else {
         logger.info("response");
-        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", GsonUtil.jsonToObject(response, PayOutResult.class).getError());
+        PayOutUserFilterUtil.filterAndUpdateFlag(index, "0", response);
         return new PayOutResult("error", "unkown");
       }
     } catch (IOException e) {

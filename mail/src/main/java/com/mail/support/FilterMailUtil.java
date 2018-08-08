@@ -78,7 +78,7 @@ public class FilterMailUtil {
     }
     try{
       for (int i = 1; i <= tryTimes; i++) {
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+        long tryMailSpace = 5000;
         logger.info("等待" + tryMailSpace + "ms读取邮件");
         Thread.sleep(tryMailSpace);
         logger.info("开始读取邮件[" + mail + "]");
@@ -108,7 +108,7 @@ public class FilterMailUtil {
     try {
       for (int i = 1; i <= tryTimes; i++) {
 
-        long tryMailSpace = RandomUtil.ranNum(space) * 1000 + 10000;
+        long tryMailSpace = 5000;
         logger.info("等待" + tryMailSpace + "ms读取邮件");
         Thread.sleep(tryMailSpace);
         logger.info("开始读取邮件[" + mail + "]");
