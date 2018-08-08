@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class ScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(ScheduledThread.class);
-  private static String version = "1.1";
+  private static String version = "1.2";
   private static int tryTime = 5;
   private static String pName = "续期";
   private static final String USER_PATH = "./续期.csv";
