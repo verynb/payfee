@@ -27,12 +27,22 @@ public class TransferPageTask {
       Document doc = Jsoup.parse(response);
       TransferPageData data = new TransferPageData(doc);
       if (!data.isActive() && tryTime > 0) {
+        try {
+          Thread.sleep(500L);
+        } catch (InterruptedException e) {
+
+        }
         tryTime--;
         return execute();
       }
       return data;
     } catch (IOException e) {
       if (tryTime > 0) {
+        try {
+          Thread.sleep(500L);
+        } catch (InterruptedException e1) {
+
+        }
         tryTime--;
         return execute();
       } else {

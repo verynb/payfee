@@ -1,14 +1,13 @@
+import com.mail.api.TransferUserInfo;
 import com.mail.api.UserInfoFilterUtil;
 import com.mail.support.ImapMailStore;
 import com.transfer.job.TransferCrawlJob;
-import com.transfer.load.TransferUserFilterUtil;
 import config.ThreadConfig;
 import identity.IdentityCheck;
 import identity.LocationConfig;
 import identity.XmlReader;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -16,10 +15,8 @@ import java.util.stream.Collectors;
 import load.LoadData;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mail.api.TransferUserInfo;
 
 /**
  * Created by Administrator on 2017/12/2.
@@ -83,7 +80,8 @@ public class ScheduledThread {
     LoadData.writeResult(UserInfoFilterUtil.users, USER_PATH);
     long successCount = UserInfoFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
-        .filter(u -> u.getFlag().equals("1")).count();
+        .filter(u -> u.getFlag().equals("1") || Double.valueOf(u.getFlag()) > 100)
+        .count();
     long failueCount = UserInfoFilterUtil.users.size() - successCount;
     System.out.println("所有任务执行完毕，成功：" + successCount + ",失败：" + failueCount);
     System.out.println("输入任意结束");
