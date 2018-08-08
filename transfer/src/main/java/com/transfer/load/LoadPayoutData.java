@@ -63,7 +63,7 @@ public class LoadPayoutData {
           userInfos.add(userInfo);
         }
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info("加载用户数据失败,请检查" + filePath + "格式是否正确");
       System.out.println("输入任意结束:");
       Scanner scan = new Scanner(System.in);
@@ -101,7 +101,7 @@ public class LoadPayoutData {
         writer.flush();
       }
       writer.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }

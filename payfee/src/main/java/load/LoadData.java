@@ -105,7 +105,7 @@ public class LoadData {
         writer.flush();
       }
       writer.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
