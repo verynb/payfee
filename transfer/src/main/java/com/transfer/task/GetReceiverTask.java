@@ -21,6 +21,7 @@ public class GetReceiverTask {
 
   private static Logger logger = LoggerFactory.getLogger(GetReceiverTask.class);
   private static String URL = HostConfig.HOST + "users/is_down_line_binary";
+  private static int tryTime = 1000;
 
 
   private static Map getParam(String userName) {
@@ -53,8 +54,16 @@ public class GetReceiverTask {
         receiverCache.putIfAbsent(userName, userInfo);
         return userInfo;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info("获取转出账户[" + userName + "]信息失败");
+      if (tryTime > 0) {
+        try {
+          Thread.sleep(500L);
+        } catch (InterruptedException e1) {
+        }
+        tryTime--;
+        execute(userName, row);
+      }
       TransferUserFilterUtil.filterAndUpdateFlag(row, "0", "网络异常");
       return new UserInfo();
     }

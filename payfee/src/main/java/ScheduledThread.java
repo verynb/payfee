@@ -81,10 +81,10 @@ public class ScheduledThread {
     s.generateRenewal(UserInfoFilterUtil.users);
     s.tryTime();
     LoadData.writeResult(UserInfoFilterUtil.users, USER_PATH);
-    long failueCount = UserInfoFilterUtil.users.stream()
+    long successCount = UserInfoFilterUtil.users.stream()
         .filter(u -> StringUtils.isNotBlank(u.getFlag()))
-        .filter(u -> u.getFlag().equals("0")).count();
-    long successCount = UserInfoFilterUtil.users.size() - failueCount;
+        .filter(u -> u.getFlag().equals("1")).count();
+    long failueCount = UserInfoFilterUtil.users.size() - successCount;
     System.out.println("所有任务执行完毕，成功：" + successCount + ",失败：" + failueCount);
     System.out.println("输入任意结束");
     Scanner scan = new Scanner(System.in);
@@ -99,6 +99,12 @@ public class ScheduledThread {
     if (CollectionUtils.isNotEmpty(enough) && (tryTime--) > 0) {
       this.generateTransfer(enough);
       this.generateRenewal(enough);
+      try {
+        Thread.sleep(2000L);
+      } catch (InterruptedException e) {
+
+      }
+      tryTime();
     }
   }
 

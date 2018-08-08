@@ -38,26 +38,29 @@ public class LoadData {
       }
       int i = 0;
       for (CsvRow row : csv.getRows()) {
-        double seven = row.getField(6) == null ? 200 : Double.valueOf(row.getField(6));
+
         if (i++ == 0) {
+          int cont = row.getFieldCount();
           String one = row.getField(0);
           String two = row.getField(1);
           String three = row.getField(2);
           String four = row.getField(3);
           String five = row.getField(4);
           String six = row.getField(5);
+          String seven = row.getField(6);
           HEADER =
               one + "," + two + "," + three + "," + four + "," + five + "," + six + "," + String.valueOf(seven) + ","
                   + "结果标识,结果描述\r\n";
         } else {
+          int cont = row.getFieldCount()-1;
           TransferUserInfo userInfo = new TransferUserInfo(
-              row.getField(0),
-              row.getField(1),
-              row.getField(2),
-              row.getField(3),
-              row.getField(4),
-              row.getField(5),
-              seven,
+              row.getField(0>cont?cont:0),
+              row.getField(1>cont?cont:1),
+              row.getField(2>cont?cont:2),
+              row.getField(3>cont?cont:3),
+              row.getField(4>cont?cont:4),
+              row.getField(5>cont?cont:5),
+              row.getField(6>cont?cont:6) == null ? 200 : Double.valueOf(row.getField(6>cont?cont:6)),
               "", "",
               i
           );
@@ -66,7 +69,7 @@ public class LoadData {
           }
         }
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info("加载用户数据失败,请检查" + filePath + "格式是否正确");
       System.out.println("输入任意结束:");
       Scanner scan = new Scanner(System.in);
