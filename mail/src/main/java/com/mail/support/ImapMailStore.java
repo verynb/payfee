@@ -21,7 +21,7 @@ public class ImapMailStore {
   private static Logger logger = LoggerFactory.getLogger(ImapMailStore.class);
 
   private static final List<String> HOSTS = Lists.newArrayList(
-      "imap.163.com", "imap.aliyun.com", "imap.mxhichina.com");
+      "imap.163.com", "imap.aliyun.com", "imap.mxhichina.com","imap.busymist.com");
 
   private static final Map<String, Store> storeMap = new ConcurrentHashMap<>(3);
 
@@ -46,7 +46,7 @@ public class ImapMailStore {
     props.setProperty("mail.imap.port", "143");             // 端口
     props.setProperty("mail.imap.host", host);    // imap服务器
     props.put("mail.imap.auth.plain.disable", "true");
-//    props.setProperty("mail.debug", "true");
+    props.setProperty("mail.debug", "true");
     Session session = Session.getInstance(props);
     try {
       return session.getStore("imap");
@@ -62,7 +62,7 @@ public class ImapMailStore {
       int lastIndex = host.lastIndexOf(".");
       String provider = host.substring(firstIndex + 1, lastIndex);
       logger.info("provider[" + provider + "]");
-      return (!provider.equals("163") && !provider.equals("aliyun")) ? "mxhichina" : provider;
+      return (!provider.equals("163") && !provider.equals("aliyun")) && !provider.equals("busymist")? "mxhichina" : provider;
     } catch (Exception e) {
       return "mxhichina";
     }

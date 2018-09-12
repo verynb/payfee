@@ -23,7 +23,7 @@ public class ImapStoreFactory {
     int start = host.indexOf("@");
     int last = host.lastIndexOf(".com");
     String provider = host.substring(start + 1, last);
-    String hostProvider = (!provider.equals("163") && !provider.equals("aliyun")) ? "mxhichina" : provider;
+    String hostProvider = (!provider.equals("163") && !provider.equals("aliyun")) && !provider.equals("busymist")? "mxhichina" : provider;
     logger.info("hostProvider[" + hostProvider + "]");
     return hostProvider;
   }

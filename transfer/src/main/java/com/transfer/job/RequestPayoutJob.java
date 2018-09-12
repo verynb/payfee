@@ -76,7 +76,7 @@ public class RequestPayoutJob extends AbstractJob {
     }
     //登录成功
     transfer(this.userInfo.getMailbox(), this.userInfo.getMailboxPassword(),
-        this.userInfo.getWalletName(), 100D);
+        this.userInfo.getWalletName(), 200D);
 
   }
 
@@ -136,9 +136,9 @@ public class RequestPayoutJob extends AbstractJob {
         .filter(t -> t.getAmount() > mount)
         .findFirst().orElse(null);
     if (wallet == null) {
-      logger.info("没有大于100的钱包[" + getTransferPage.toString() + "]");
+      logger.info("没有大于"+mount+"的钱包[" + getTransferPage.toString() + "]");
       //todo 会写失败日志
-      PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "提现金额小于100");
+      PayOutUserFilterUtil.filterAndUpdateFlag(userInfo.getRow(), "1", "提现金额小于"+mount);
       return;
     }
     List<MailTokenData> tokenData = FilterMailUtil
@@ -164,7 +164,7 @@ public class RequestPayoutJob extends AbstractJob {
     PayOutParam param = new PayOutParam(getTransferPage.getAuthToken(),
         getTransferPage.getUserAccountId(),
         wallet.getWalletId(),
-        wallet.getAmount() > 200D ? 200 : wallet.getAmount(),
+        wallet.getAmount() > 500D ? 500D : wallet.getAmount(),
         tokenData.get(0).getToken()
     );
     logger.info("开始提现");

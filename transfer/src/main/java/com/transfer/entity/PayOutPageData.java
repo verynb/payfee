@@ -71,7 +71,7 @@ public class PayOutPageData {
     this.payOutWallets = payOutWallets;
     this.ableWalletSize = (int) getPayOutWallets()
         .stream()
-        .filter(t -> t.getAmount() > 10D)
+        .filter(t -> t.getAmount() > 200D)
         .count();
   }
 
