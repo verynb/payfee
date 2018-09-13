@@ -23,7 +23,7 @@ public class TransferScheduledThread {
 
   private static Logger logger = LoggerFactory.getLogger(TransferScheduledThread.class);
 
-  private static String version = "1.6";
+  private static String version = "1.7";
 
   private static String pName = "收分";
 
