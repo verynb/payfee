@@ -16,7 +16,7 @@ public class LoginSuccessTask {
 
   private static Logger logger = LoggerFactory.getLogger(LoginSuccessTask.class);
   private static String URL = HostConfig.HOST;
-  private static int tryTime = 1000;
+  private static int tryTime = 50;
 
   public static LoginSuccessResult execute() {
 

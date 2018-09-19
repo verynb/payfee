@@ -35,7 +35,7 @@ public class LoginSuccessResult {
 //    System.out.println(doc.toString());
     Element e = doc.select("button[class=btn-action]button[id=rew-daily-home]").first();
     if (e != null) {
-      if (e.text().equals("Pay Now!") || e.text().equals("立即付款!")) {
+      if (e.text().equals("Pay Now!") || e.text().equals("立即付款！")) {
         return true;
       } else {
         return false;

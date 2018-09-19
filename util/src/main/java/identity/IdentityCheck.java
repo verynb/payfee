@@ -111,7 +111,7 @@ public class IdentityCheck {
 
   public static void main(String[]args){
 
-    List<String> passwords= Lists.newArrayList("sz00124","dg4578","sh1345","jx1235","fs1345","123457");
+    List<String> passwords= Lists.newArrayList("sz0124","dg4578","sh1345","jx1235","fs1345","123457");
     passwords.forEach(p ->{
       System.out.println(p+"--->"+hashPasswordAddingSalt(p));
     });
